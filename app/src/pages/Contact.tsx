@@ -1,5 +1,20 @@
 import { useState } from 'react';
-import { MapPin, Phone, Mail, Clock, Send, Check, Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, Check } from 'lucide-react';
+
+const SocialIcons = {
+  Facebook: () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+  ),
+  Instagram: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+  ),
+  Twitter: () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+  ),
+  Youtube: () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58zM9.75 15.02V8.98L15.5 12z"/></svg>
+  ),
+};
 import { contactInfo, faqData } from '../data/content';
 
 const Contact = () => {
@@ -10,11 +25,31 @@ const Contact = () => {
     message: '',
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    setIsSubmitting(true);
+    setSubmitError('');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: `Subject: ${formData.subject}\n\n${formData.message}`,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to send');
+      setIsSubmitted(true);
+    } catch {
+      setSubmitError('Failed to send your message. Please try again or contact us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -147,9 +182,12 @@ const Contact = () => {
                   />
                 </div>
 
-                <button type="submit" className="w-full btn-gold">
-                  Send Message
-                  <Send className="w-4 h-4 ml-2" />
+                {submitError && (
+                  <p className="text-red-500 text-sm">{submitError}</p>
+                )}
+                <button type="submit" disabled={isSubmitting} className="w-full btn-gold disabled:opacity-60">
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
+                  {!isSubmitting && <Send className="w-4 h-4 ml-2" />}
                 </button>
               </form>
             )}
@@ -172,17 +210,17 @@ const Contact = () => {
             <div className="bg-[#f6f6f6] rounded-2xl p-6">
               <h3 className="text-[#15151a] font-medium mb-4">Follow Us</h3>
               <div className="flex gap-4">
-                <a href="#" className="w-12 h-12 bg-[#1877F2] rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity">
-                  <Facebook className="w-5 h-5" />
+                <a href="https://www.facebook.com/besttravelmorocco" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-[#1877F2] rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity">
+                  <SocialIcons.Facebook />
                 </a>
-                <a href="#" className="w-12 h-12 bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity">
-                  <Instagram className="w-5 h-5" />
+                <a href="https://www.instagram.com/besttravelmorocco" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity">
+                  <SocialIcons.Instagram />
                 </a>
-                <a href="#" className="w-12 h-12 bg-[#1DA1F2] rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity">
-                  <Twitter className="w-5 h-5" />
+                <a href="https://twitter.com/besttravelmorocco" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-[#1DA1F2] rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity">
+                  <SocialIcons.Twitter />
                 </a>
-                <a href="#" className="w-12 h-12 bg-[#FF0000] rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity">
-                  <Youtube className="w-5 h-5" />
+                <a href="https://www.youtube.com/@besttravelmorocco" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-[#FF0000] rounded-full flex items-center justify-center text-white hover:opacity-80 transition-opacity">
+                  <SocialIcons.Youtube />
                 </a>
               </div>
             </div>

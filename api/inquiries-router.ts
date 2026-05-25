@@ -5,6 +5,27 @@ import * as schema from "@db/schema";
 import { eq, desc, count } from "drizzle-orm";
 
 export const inquiriesRouter = createRouter({
+  create: publicQuery
+    .input(z.object({
+      name: z.string().min(1),
+      email: z.email(),
+      phone: z.string().optional(),
+      tourId: z.string().optional(),
+      tourName: z.string().optional(),
+      message: z.string().optional(),
+      travelDate: z.string().optional(),
+      travelers: z.number().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = getDb();
+      await db.insert(schema.inquiries).values({
+        ...input,
+        travelers: input.travelers ?? 1,
+        status: "new",
+      });
+      return { success: true };
+    }),
+
   list: publicQuery.query(async () => {
     const db = getDb();
     return await db.select().from(schema.inquiries).orderBy(desc(schema.inquiries.createdAt));

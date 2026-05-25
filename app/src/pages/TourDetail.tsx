@@ -124,13 +124,22 @@ const TourDetail = () => {
   // Submit enquiry
   const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Here you would typically send the enquiry to your backend
-    // For now, we'll simulate a successful submission
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
+    await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: enquiryForm.name,
+        email: enquiryForm.email,
+        phone: enquiryForm.phone || null,
+        tourId: tour.slug,
+        tourName: tour.title,
+        message: enquiryForm.message || null,
+        travelDate: enquiryForm.travelDate || null,
+        travelers: parseInt(enquiryForm.travelers) || 1,
+      }),
+    });
+
     setEnquirySubmitted(true);
     
     // Reset form after 3 seconds

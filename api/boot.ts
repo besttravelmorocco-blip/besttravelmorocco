@@ -20,6 +20,30 @@ app.use("/api/trpc/*", async (c) => {
     createContext,
   });
 });
+// Public contact/enquiry form endpoint (called by public-facing app)
+app.post("/api/contact", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { getDb } = await import("./queries/connection");
+    const schema = await import("@db/schema");
+    const db = getDb();
+    await db.insert(schema.inquiries).values({
+      name: body.name ?? "",
+      email: body.email ?? "",
+      phone: body.phone ?? null,
+      tourId: body.tourId ?? null,
+      tourName: body.tourName ?? null,
+      message: body.message ?? null,
+      travelDate: body.travelDate ?? null,
+      travelers: body.travelers ?? 1,
+      status: "new",
+    });
+    return c.json({ success: true });
+  } catch {
+    return c.json({ error: "Failed to save inquiry" }, 500);
+  }
+});
+
 app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 export default app;
