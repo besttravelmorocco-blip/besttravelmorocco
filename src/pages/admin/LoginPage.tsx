@@ -65,7 +65,7 @@ export default function LoginPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="admin"
+                placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -103,13 +103,6 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-
-            {/* Default credentials hint */}
-            <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
-              <strong>Default login:</strong><br />
-              Username: <code>admin</code><br />
-              Password: <code>besttravel2026</code>
-            </div>
 
             {/* Submit */}
             <Button

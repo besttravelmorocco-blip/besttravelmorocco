@@ -13,10 +13,9 @@ export interface AuthUser {
   token: string;
 }
 
-// Default admin credentials (user can change in settings)
 const DEFAULT_CREDENTIALS = {
-  username: "admin",
-  password: "besttravel2026",
+  username: "Amed",
+  password: "liS5I6VZOvNArNa0",
 };
 
 export function getStoredUser(): AuthUser | null {
@@ -50,7 +49,7 @@ export function login(username: string, password: string): AuthUser | null {
   if (username === adminUsername && password === adminPassword) {
     const user: AuthUser = {
       id: "admin-1",
-      name: settings.adminName || "Admin",
+      name: settings.adminName || "Amed",
       email: settings.adminEmail || "admin@besttravelmorocco.com",
       role: "admin",
       token: btoa(`${username}:${Date.now()}`),
