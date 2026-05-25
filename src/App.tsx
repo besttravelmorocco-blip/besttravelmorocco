@@ -5,6 +5,7 @@ import Dashboard from "@/pages/admin/Dashboard";
 import ToursPage from "@/pages/admin/ToursPage";
 import BlogPage from "@/pages/admin/BlogPage";
 import InquiriesPage from "@/pages/admin/InquiriesPage";
+import TestimonialsPage from "@/pages/admin/TestimonialsPage";
 import MediaPage from "@/pages/admin/MediaPage";
 import SettingsPage from "@/pages/admin/SettingsPage";
 import PageBuilder from "@/components/PageBuilder";
@@ -32,7 +33,7 @@ function AdminRoutes() {
           <Route path="/blog/new" element={<BlogPage />} />
           <Route path="/inquiries" element={<InquiriesPage />} />
           <Route path="/media" element={<MediaPage />} />
-          <Route path="/testimonials" element={<InquiriesPage />} />
+          <Route path="/testimonials" element={<TestimonialsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </AdminLayout>

@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider
 import {
   tourStore, blogStore, inquiryStore,
   settingsStore, getDashboardStats, getSeedStatus,
+  testimonialStore, mediaStore,
 } from "@/lib/localStore";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,8 @@ function useUtils() {
     inquiries: { list: { invalidate: () => qc.invalidateQueries({ queryKey: ["inquiries"] }) } },
     dashboard: { stats: { invalidate: () => qc.invalidateQueries({ queryKey: ["dashboard"] }) } },
     seed: { status: { invalidate: () => qc.invalidateQueries({ queryKey: ["seed"] }) } },
+    testimonials: { list: { invalidate: () => qc.invalidateQueries({ queryKey: ["testimonials"] }) } },
+    media: { list: { invalidate: () => qc.invalidateQueries({ queryKey: ["media"] }) } },
   };
 }
 
@@ -80,6 +83,12 @@ const queryHooks = {
   },
   seed: {
     status: () => useQuery({ queryKey: ["seed", "status"], queryFn: () => getSeedStatus(), staleTime: 0 }),
+  },
+  testimonials: {
+    list: () => useQuery({ queryKey: ["testimonials"], queryFn: () => testimonialStore.getAll(), staleTime: 0 }),
+  },
+  media: {
+    list: () => useQuery({ queryKey: ["media"], queryFn: () => mediaStore.getAll(), staleTime: 0 }),
   },
 };
 
@@ -154,6 +163,33 @@ const mutationHooks = {
       });
     },
   },
+  testimonials: {
+    create: () => {
+      const qc = useQueryClient();
+      return useMutation({ mutationFn: (t: any) => Promise.resolve(testimonialStore.create(t)), onSuccess: () => qc.invalidateQueries() });
+    },
+    update: () => {
+      const qc = useQueryClient();
+      return useMutation({
+        mutationFn: ({ id, ...data }: any) => { const r = testimonialStore.update(id, data); if (!r) throw new Error("Not found"); return Promise.resolve(r); },
+        onSuccess: () => qc.invalidateQueries(),
+      });
+    },
+    delete: () => {
+      const qc = useQueryClient();
+      return useMutation({ mutationFn: (id: string) => Promise.resolve(testimonialStore.delete(id)), onSuccess: () => qc.invalidateQueries() });
+    },
+  },
+  media: {
+    create: () => {
+      const qc = useQueryClient();
+      return useMutation({ mutationFn: (m: any) => Promise.resolve(mediaStore.create(m)), onSuccess: () => qc.invalidateQueries() });
+    },
+    delete: () => {
+      const qc = useQueryClient();
+      return useMutation({ mutationFn: (id: string) => Promise.resolve(mediaStore.delete(id)), onSuccess: () => qc.invalidateQueries() });
+    },
+  },
 };
 
 // ═══════════════════════════════════════════
@@ -191,6 +227,8 @@ function useUtilsFixed() {
     inquiries: { list: { invalidate: () => qc.invalidateQueries({ queryKey: ["inquiries"] }) } },
     dashboard: { stats: { invalidate: () => qc.invalidateQueries({ queryKey: ["dashboard"] }) } },
     seed: { status: { invalidate: () => qc.invalidateQueries({ queryKey: ["seed"] }) } },
+    testimonials: { list: { invalidate: () => qc.invalidateQueries({ queryKey: ["testimonials"] }) } },
+    media: { list: { invalidate: () => qc.invalidateQueries({ queryKey: ["media"] }) } },
   };
 }
 
@@ -231,6 +269,17 @@ export const trpc = {
   auth: {
     me: { useQuery: useAuthMe },
     logout: { useMutation: useAuthLogout },
+  },
+  testimonials: {
+    list: { useQuery: queryHooks.testimonials.list },
+    create: { useMutation: mutationHooks.testimonials.create },
+    update: { useMutation: mutationHooks.testimonials.update },
+    delete: { useMutation: mutationHooks.testimonials.delete },
+  },
+  media: {
+    list: { useQuery: queryHooks.media.list },
+    create: { useMutation: mutationHooks.media.create },
+    delete: { useMutation: mutationHooks.media.delete },
   },
   useContext: useUtilsFixed,
   useUtils: useUtilsFixed,
