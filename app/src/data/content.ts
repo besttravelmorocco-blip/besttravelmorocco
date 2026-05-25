@@ -442,8 +442,8 @@ export const features = [
 // ============================================================================
 
 export const contactInfo = {
-  phone: '+212 768-660428',
-  whatsapp: '+212 768-660428',
+  phone: '+212677365421',
+  whatsapp: '+212677365421',
   email: 'hello@gobestmorocco.com',
   address: 'Casablanca, Morocco',
   hours: 'Monday - Saturday: 9:00 AM - 6:00 PM',

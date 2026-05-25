@@ -206,7 +206,7 @@ const bookingConfirmationTemplate = (data: BookingData): string => `
       
       <p>If you have any questions, please contact us at:<br>
       Email: hello@gobestmorocco.com<br>
-      Phone: +212 768-660428</p>
+      Phone: +212677365421</p>
     </div>
     <div class="footer">
       <p>Best of Morocco - Your Gateway to Authentic Moroccan Adventures</p>
