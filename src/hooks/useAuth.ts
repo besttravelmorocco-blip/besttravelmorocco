@@ -1,7 +1,6 @@
-import { trpc } from "@/providers/trpc";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { LOGIN_PATH } from "@/const";
+import { getStoredUser, isAuthenticated, logout, type AuthUser } from "@/lib/authStore";
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
@@ -9,50 +8,35 @@ type UseAuthOptions = {
 };
 
 export function useAuth(options?: UseAuthOptions) {
-  const { redirectOnUnauthenticated = false, redirectPath = LOGIN_PATH } =
-    options ?? {};
-
+  const { redirectOnUnauthenticated = false, redirectPath = "/login" } = options ?? {};
   const navigate = useNavigate();
+  const [checked, setChecked] = useState(false);
 
-  const utils = trpc.useUtils();
+  // Re-read auth state from localStorage
+  const user = useMemo<AuthUser | null>(() => getStoredUser(), [checked]);
+  const authenticated = useMemo(() => isAuthenticated(), [checked]);
 
-  const {
-    data: user,
-    isLoading,
-    error,
-    refetch,
-  } = trpc.auth.me.useQuery(undefined, {
-    staleTime: 1000 * 60 * 5,
-    retry: false,
-  });
-
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: async () => {
-      await utils.invalidate();
-      navigate(redirectPath);
-    },
-  });
-
-  const logout = useCallback(() => logoutMutation.mutate(), [logoutMutation]);
+  const doLogout = useCallback(() => {
+    logout();
+  }, []);
 
   useEffect(() => {
-    if (redirectOnUnauthenticated && !isLoading && !user) {
-      const currentPath = window.location.pathname;
-      if (currentPath !== redirectPath) {
-        navigate(redirectPath);
-      }
+    setChecked(true);
+    if (redirectOnUnauthenticated && !isAuthenticated()) {
+      navigate(redirectPath);
     }
-  }, [redirectOnUnauthenticated, isLoading, user, navigate, redirectPath]);
+  }, [redirectOnUnauthenticated, redirectPath, navigate]);
 
   return useMemo(
     () => ({
-      user: user ?? null,
-      isAuthenticated: !!user,
-      isLoading: isLoading || logoutMutation.isPending,
-      error,
-      logout,
-      refresh: refetch,
+      user,
+      isAuthenticated: authenticated,
+      isLoading: false,
+      isAdmin: user?.role === "admin",
+      isEditor: user?.role === "editor",
+      logout: doLogout,
+      refresh: () => setChecked(c => c + 1),
     }),
-    [user, isLoading, logoutMutation.isPending, error, logout, refetch],
+    [user, authenticated, doLogout, checked],
   );
 }
