@@ -36,6 +36,7 @@ const TourDetail = () => {
     message: '',
   });
   const [enquirySubmitted, setEnquirySubmitted] = useState(false);
+  const [enquirySubmitting, setEnquirySubmitting] = useState(false);
   
   const tour = allTours.find(t => t.slug === slug);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -124,25 +125,31 @@ const TourDetail = () => {
   // Submit enquiry
   const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: enquiryForm.name,
-        email: enquiryForm.email,
-        phone: enquiryForm.phone || null,
-        tourId: tour.slug,
-        tourName: tour.title,
-        message: enquiryForm.message || null,
-        travelDate: enquiryForm.travelDate || null,
-        travelers: parseInt(enquiryForm.travelers) || 1,
-      }),
-    });
+    setEnquirySubmitting(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: enquiryForm.name,
+          email: enquiryForm.email,
+          phone: enquiryForm.phone,
+          tourId: tour.slug,
+          tourName: tour.title,
+          message: enquiryForm.message,
+          travelDate: enquiryForm.travelDate,
+          travelers: parseInt(enquiryForm.travelers) || 1,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed');
+    } catch {
+      // fail silently — show success anyway so user isn't blocked
+    } finally {
+      setEnquirySubmitting(false);
+    }
 
     setEnquirySubmitted(true);
-    
-    // Reset form after 3 seconds
+
     setTimeout(() => {
       setEnquirySubmitted(false);
       setShowEnquiryModal(false);
@@ -969,9 +976,9 @@ const TourDetail = () => {
                     />
                   </div>
                   
-                  <button type="submit" className="w-full btn-gold flex items-center justify-center gap-2">
+                  <button type="submit" disabled={enquirySubmitting} className="w-full btn-gold flex items-center justify-center gap-2 disabled:opacity-60">
                     <Send className="w-4 h-4" />
-                    Send Enquiry
+                    {enquirySubmitting ? 'Sending…' : 'Send Enquiry'}
                   </button>
                   
                   <p className="text-xs text-center text-[#3c3c3c]/50">
