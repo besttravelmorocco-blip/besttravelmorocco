@@ -272,3 +272,56 @@ export const analyticsEvents = pgTable("analytics_events", {
 
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+
+// ─── TOUR DAYS (itinerary as rows) ───────────────────────────────────────────
+export const tourDays = pgTable("tour_days", {
+  id: serial("id").primaryKey(),
+  tourId: varchar("tour_id", { length: 100 }).notNull().references(() => tours.id, { onDelete: "cascade" }),
+  dayNumber: integer("day_number").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  route: varchar("route", { length: 255 }),
+  description: text("description"),
+  activities: jsonb("activities").$type<string[]>().default([]),
+  meals: jsonb("meals").$type<{ breakfast?: boolean; lunch?: boolean; dinner?: boolean }>(),
+  accommodation: varchar("accommodation", { length: 255 }),
+  images: jsonb("images").$type<string[]>().default([]),
+});
+
+export type TourDay = typeof tourDays.$inferSelect;
+export type InsertTourDay = typeof tourDays.$inferInsert;
+
+// ─── STUDENT TOURS CATALOG ────────────────────────────────────────────────────
+export const studentTours = pgTable("student_tours", {
+  id: varchar("id", { length: 100 }).primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  days: integer("days").notNull(),
+  nights: integer("nights").notNull(),
+  basePrice: integer("base_price").notNull().default(0),
+  privatePrice: integer("private_price"),
+  description: text("description").default(""),
+  highlights: jsonb("highlights").$type<string[]>().default([]),
+  included: jsonb("included").$type<string[]>().default([]),
+  groupPricing: jsonb("group_pricing").$type<{ minPax: number; maxPax: number; pricePerPerson: number }[]>().default([]),
+  image: varchar("image", { length: 500 }).default(""),
+  active: boolean("active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+});
+
+export type StudentTourRow = typeof studentTours.$inferSelect;
+export type InsertStudentTour = typeof studentTours.$inferInsert;
+
+// ─── STUDENT PAYMENT METHODS ──────────────────────────────────────────────────
+export const studentPaymentMethods = pgTable("student_payment_methods", {
+  id: varchar("id", { length: 50 }).primaryKey(),
+  label: varchar("label", { length: 100 }).notNull(),
+  link: text("link").default(""),
+  instructions: text("instructions").default(""),
+  enabled: boolean("enabled").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+});
+
+export type StudentPaymentMethodRow = typeof studentPaymentMethods.$inferSelect;
+export type InsertStudentPaymentMethod = typeof studentPaymentMethods.$inferInsert;
