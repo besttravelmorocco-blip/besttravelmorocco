@@ -14,8 +14,8 @@ export interface AuthUser {
 }
 
 const DEFAULT_CREDENTIALS = {
-  username: "Amed",
-  password: "liS5I6VZOvNArNa0",
+  username: import.meta.env.VITE_ADMIN_USER || "Amed",
+  password: import.meta.env.VITE_ADMIN_PASS || "",
 };
 
 export function getStoredUser(): AuthUser | null {
