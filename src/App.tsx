@@ -10,6 +10,10 @@ import MediaPage from "@/pages/admin/MediaPage";
 import SettingsPage from "@/pages/admin/SettingsPage";
 import PageBuilder from "@/components/PageBuilder";
 import LoginPage from "@/pages/admin/LoginPage";
+import BookingsPage from "@/pages/admin/BookingsPage";
+import StudentTripsPage from "@/pages/admin/StudentTripsPage";
+import PricingPage from "@/pages/admin/PricingPage";
+import AnalyticsPage from "@/pages/admin/AnalyticsPage";
 import { isAuthenticated } from "@/lib/authStore";
 import { type ReactNode } from "react";
 
@@ -32,6 +36,10 @@ function AdminRoutes() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/new" element={<BlogPage />} />
           <Route path="/inquiries" element={<InquiriesPage />} />
+          <Route path="/bookings" element={<BookingsPage />} />
+          <Route path="/student-trips" element={<StudentTripsPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/media" element={<MediaPage />} />
           <Route path="/testimonials" element={<TestimonialsPage />} />
           <Route path="/settings" element={<SettingsPage />} />

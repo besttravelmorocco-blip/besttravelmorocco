@@ -22,9 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-# Environment variables
+# Environment variables — ALL env files are secret, never commit
 .env
+.env.*
 .env.local
+.env.production
+.env.staging
 .env.*.local
 # Database
 *.db

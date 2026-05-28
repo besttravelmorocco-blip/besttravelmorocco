@@ -18,6 +18,10 @@ import {
   LogOut,
   ChevronRight,
   Layers,
+  BookOpen,
+  CalendarDays,
+  Calculator,
+  BarChart2,
 } from "lucide-react";
 
 const sidebarNavItems = [
@@ -46,6 +50,26 @@ const sidebarNavItems = [
     href: "/admin/inquiries",
     icon: Mail,
     badge: "new",
+  },
+  {
+    title: "Bookings",
+    href: "/admin/bookings",
+    icon: BookOpen,
+  },
+  {
+    title: "Student Trips",
+    href: "/admin/student-trips",
+    icon: CalendarDays,
+  },
+  {
+    title: "Pricing Engine",
+    href: "/admin/pricing",
+    icon: Calculator,
+  },
+  {
+    title: "Analytics",
+    href: "/admin/analytics",
+    icon: BarChart2,
   },
   {
     title: "Media Library",
