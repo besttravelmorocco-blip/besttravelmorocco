@@ -360,3 +360,270 @@ export function resetAllData() {
 
 // ─── Export default tours for reference ────
 export { defaultTours };
+
+// ══════════════════════════════════════════════════════════════
+// BOOKING STORE
+// ══════════════════════════════════════════════════════════════
+const BOOKING_KEY = "btm_bookings";
+const DEPARTURE_KEY = "btm_departures";
+const PRICING_KEY = "btm_pricing_rules";
+
+function genRef() {
+  return "BTM-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+}
+
+export interface LocalBooking {
+  id: number;
+  reference: string;
+  tourId?: string;
+  tourName?: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  customerCountry?: string;
+  departureDate?: string;
+  adults: number;
+  children: number;
+  accommodation: "shared" | "private" | "luxury";
+  totalPrice?: number;
+  currency: string;
+  status: "pending" | "confirmed" | "paid" | "completed" | "cancelled" | "refunded";
+  paymentStatus: "unpaid" | "partial" | "paid" | "refunded";
+  depositAmount?: number;
+  notes?: string;
+  internalNotes?: string;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const bookingStore = {
+  getAll(): LocalBooking[] {
+    return load<LocalBooking[]>(BOOKING_KEY, []);
+  },
+  getById(id: number): LocalBooking | undefined {
+    return this.getAll().find((b) => b.id === id);
+  },
+  create(data: Omit<LocalBooking, "id" | "reference" | "createdAt" | "updatedAt">): LocalBooking {
+    const all = this.getAll();
+    const now = new Date().toISOString();
+    const maxId = all.reduce((m, b) => Math.max(m, b.id), 0);
+    const booking: LocalBooking = {
+      ...data,
+      id: maxId + 1,
+      reference: genRef(),
+      currency: data.currency ?? "USD",
+      adults: data.adults ?? 1,
+      children: data.children ?? 0,
+      accommodation: data.accommodation ?? "shared",
+      status: "pending",
+      paymentStatus: "unpaid",
+      source: data.source ?? "admin",
+      createdAt: now,
+      updatedAt: now,
+    };
+    all.push(booking);
+    save(BOOKING_KEY, all);
+    return booking;
+  },
+  update(id: number, updates: Partial<LocalBooking>): LocalBooking | null {
+    const all = this.getAll();
+    const idx = all.findIndex((b) => b.id === id);
+    if (idx === -1) return null;
+    all[idx] = { ...all[idx], ...updates, updatedAt: new Date().toISOString() };
+    save(BOOKING_KEY, all);
+    return all[idx];
+  },
+  delete(id: number): boolean {
+    save(BOOKING_KEY, this.getAll().filter((b) => b.id !== id));
+    return true;
+  },
+  stats() {
+    const all = this.getAll();
+    const revenue = all
+      .filter((b) => b.paymentStatus === "paid" && b.totalPrice)
+      .reduce((s, b) => s + (b.totalPrice ?? 0), 0);
+    return {
+      total: all.length,
+      confirmed: all.filter((b) => b.status === "confirmed").length,
+      revenue,
+    };
+  },
+};
+
+// ══════════════════════════════════════════════════════════════
+// DEPARTURE STORE
+// ══════════════════════════════════════════════════════════════
+export interface LocalDeparture {
+  id: number;
+  tourId?: string;
+  tourName: string;
+  departureDate: string;
+  returnDate: string;
+  maxSeats: number;
+  bookedSeats: number;
+  pricePerPerson?: number;
+  status: "open" | "filling" | "full" | "cancelled" | "completed";
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function nextThursdayDate(from: Date): Date {
+  const d = new Date(from);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay();
+  const daysUntilThursday = (4 - day + 7) % 7 || 7;
+  d.setDate(d.getDate() + daysUntilThursday);
+  return d;
+}
+
+function addDaysDate(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function fmt(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+export const departureStore = {
+  getAll(): LocalDeparture[] {
+    return load<LocalDeparture[]>(DEPARTURE_KEY, []);
+  },
+  generate(opts: {
+    tourId: string;
+    tourName: string;
+    count: number;
+    startWeeks: number;
+    maxSeats: number;
+    pricePerPerson?: number;
+  }): number {
+    const all = this.getAll();
+    const maxId = all.reduce((m, d) => Math.max(m, d.id), 0);
+    const now = new Date().toISOString();
+    let cursor = addDaysDate(new Date(), opts.startWeeks * 7);
+    let next = nextThursdayDate(cursor);
+    const rows: LocalDeparture[] = [];
+    for (let i = 0; i < opts.count; i++) {
+      rows.push({
+        id: maxId + i + 1,
+        tourId: opts.tourId,
+        tourName: opts.tourName,
+        departureDate: fmt(next),
+        returnDate: fmt(addDaysDate(next, 3)),
+        maxSeats: opts.maxSeats,
+        bookedSeats: 0,
+        pricePerPerson: opts.pricePerPerson,
+        status: "open",
+        createdAt: now,
+        updatedAt: now,
+      });
+      next = addDaysDate(next, 7);
+    }
+    save(DEPARTURE_KEY, [...all, ...rows]);
+    return rows.length;
+  },
+  update(id: number, updates: Partial<LocalDeparture>): LocalDeparture | null {
+    const all = this.getAll();
+    const idx = all.findIndex((d) => d.id === id);
+    if (idx === -1) return null;
+    all[idx] = { ...all[idx], ...updates, updatedAt: new Date().toISOString() };
+    save(DEPARTURE_KEY, all);
+    return all[idx];
+  },
+  delete(id: number): boolean {
+    save(DEPARTURE_KEY, this.getAll().filter((d) => d.id !== id));
+    return true;
+  },
+};
+
+// ══════════════════════════════════════════════════════════════
+// PRICING RULE STORE
+// ══════════════════════════════════════════════════════════════
+export interface LocalPricingRule {
+  id: number;
+  name: string;
+  tourId?: string;
+  ruleType: "base" | "season" | "group" | "accommodation" | "earlybird" | "lastminute";
+  modifier: string;
+  modifierType: "percent" | "fixed";
+  validFrom?: string;
+  validTo?: string;
+  priority: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const pricingRuleStore = {
+  getAll(): LocalPricingRule[] {
+    return load<LocalPricingRule[]>(PRICING_KEY, []);
+  },
+  create(data: Omit<LocalPricingRule, "id" | "createdAt" | "updatedAt">): LocalPricingRule {
+    const all = this.getAll();
+    const maxId = all.reduce((m, r) => Math.max(m, r.id), 0);
+    const now = new Date().toISOString();
+    const rule: LocalPricingRule = { ...data, id: maxId + 1, active: true, createdAt: now, updatedAt: now };
+    all.push(rule);
+    save(PRICING_KEY, all);
+    return rule;
+  },
+  update(id: number, updates: Partial<LocalPricingRule>): LocalPricingRule | null {
+    const all = this.getAll();
+    const idx = all.findIndex((r) => r.id === id);
+    if (idx === -1) return null;
+    all[idx] = { ...all[idx], ...updates, updatedAt: new Date().toISOString() };
+    save(PRICING_KEY, all);
+    return all[idx];
+  },
+  delete(id: number): boolean {
+    save(PRICING_KEY, this.getAll().filter((r) => r.id !== id));
+    return true;
+  },
+};
+
+// ══════════════════════════════════════════════════════════════
+// ANALYTICS AGGREGATION
+// ══════════════════════════════════════════════════════════════
+export function getAnalyticsOverview() {
+  const bookings = bookingStore.getAll();
+  const inqs = inquiryStore.getAll();
+  const stats = bookingStore.stats();
+
+  const bookingBreakdown = Object.entries(
+    bookings.reduce<Record<string, number>>((acc, b) => {
+      acc[b.status] = (acc[b.status] ?? 0) + 1;
+      return acc;
+    }, {})
+  ).map(([status, count]) => ({ status, count }));
+
+  const inquiryBreakdown = Object.entries(
+    inqs.reduce<Record<string, number>>((acc, i) => {
+      acc[i.status] = (acc[i.status] ?? 0) + 1;
+      return acc;
+    }, {})
+  ).map(([status, count]) => ({ status, count }));
+
+  const tourCounts = bookings.reduce<Record<string, number>>((acc, b) => {
+    if (b.tourName) acc[b.tourName] = (acc[b.tourName] ?? 0) + 1;
+    return acc;
+  }, {});
+  const topTours = Object.entries(tourCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([tourName, count]) => ({ tourName, count }));
+
+  const recentBookings = [...bookings]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 5);
+
+  return {
+    bookings: { total: stats.total, confirmed: stats.confirmed, breakdown: bookingBreakdown },
+    revenue: { total: stats.revenue },
+    inquiries: { total: inqs.length, new: inqs.filter((i) => i.status === "new").length, breakdown: inquiryBreakdown },
+    recentBookings,
+    topTours,
+  };
+}
