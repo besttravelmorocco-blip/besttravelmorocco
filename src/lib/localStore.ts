@@ -362,6 +362,192 @@ export function resetAllData() {
 export { defaultTours };
 
 // ══════════════════════════════════════════════════════════════
+// STUDENT TOUR CATALOG  (seeded from besttravelmorocco.com/student-trips)
+// ══════════════════════════════════════════════════════════════
+const STUDENT_CATALOG_KEY = "btm_student_catalog";
+const PAYMENT_METHODS_KEY = "btm_payment_methods";
+
+export interface StudentTour {
+  id: string;
+  title: string;
+  days: number;
+  nights: number;
+  basePrice: number;          // EUR per person, shared accommodation
+  privatePrice?: number;
+  description: string;
+  highlights: string[];
+  included: string[];
+  groupPricing: { minPax: number; maxPax: number; pricePerPerson: number }[];
+  image: string;
+}
+
+export interface PaymentMethod {
+  id: "wise" | "paypal" | "card";
+  label: string;
+  link: string;
+  instructions: string;
+  enabled: boolean;
+}
+
+const DEFAULT_STUDENT_TOURS: StudentTour[] = [
+  {
+    id: "3-day-students-desert",
+    title: "3-Day Students Desert Trip",
+    days: 3,
+    nights: 2,
+    basePrice: 350,
+    privatePrice: 420,
+    description: "A fun 3-day student trip from Marrakech to Merzouga, discovering the High Atlas Mountains, ancient kasbahs, and a magical night under the stars.",
+    highlights: ["Atlas Mountains crossing", "Ait Benhaddou UNESCO site", "Dades Valley", "Todra Gorge", "Erg Chebbi camel trek", "Berber desert camp"],
+    included: ["Transport in minivan with A/C", "English-speaking student guide", "1 night in shared Dades hotel (dinner & breakfast)", "1 night in shared Sahara desert camp (dinner & breakfast)", "Sunset & sunrise camel trek", "All entrance fees"],
+    groupPricing: [
+      { minPax: 2,  maxPax: 5,  pricePerPerson: 380 },
+      { minPax: 6,  maxPax: 10, pricePerPerson: 360 },
+      { minPax: 11, maxPax: 16, pricePerPerson: 350 },
+      { minPax: 17, maxPax: 25, pricePerPerson: 330 },
+    ],
+    image: "/images/tour_4day-students.jpg",
+  },
+  {
+    id: "4-days-students-desert",
+    title: "4-Day Students Desert Trip",
+    days: 4,
+    nights: 3,
+    basePrice: 450,
+    privatePrice: 530,
+    description: "A fun 4-day student trip from Marrakech to the Sahara Desert, with more time to explore the Dades Valley, Todra Gorge, and the magical Erg Chebbi dunes.",
+    highlights: ["Atlas Mountains crossing", "Ait Benhaddou UNESCO site", "Dades Valley hike", "Todra Gorge exploration", "Extended Sahara time", "Berber desert camp"],
+    included: ["Transport in minivan with A/C", "English-speaking student guide", "2 nights in shared hotels (dinner & breakfast)", "1 night in shared Sahara desert camp (dinner & breakfast)", "Sunset & sunrise camel trek", "All entrance fees"],
+    groupPricing: [
+      { minPax: 2,  maxPax: 5,  pricePerPerson: 490 },
+      { minPax: 6,  maxPax: 10, pricePerPerson: 465 },
+      { minPax: 11, maxPax: 16, pricePerPerson: 450 },
+      { minPax: 17, maxPax: 25, pricePerPerson: 420 },
+    ],
+    image: "/images/tour_4day-students.jpg",
+  },
+  {
+    id: "marrakech-sahara-students-5day",
+    title: "5-Day Marrakech & Sahara Discovery (Students)",
+    days: 5,
+    nights: 4,
+    basePrice: 520,
+    privatePrice: 620,
+    description: "Student-focused adventure combining vibrant Marrakech with magical Sahara Desert, traversing High Atlas Mountains, ancient kasbahs, palm oases, and golden Erg Chebbi dunes.",
+    highlights: ["Atlas Mountains Tizi n'Tichka Pass", "Ait Benhaddou UNESCO site", "Ouarzazate 'Hollywood of Morocco'", "Todra Gorge rock walls", "Erg Chebbi camel trekking", "Berber camp stargazing", "Draa Valley palm groves"],
+    included: ["Air-conditioned minibus or 4WD", "Qualified multilingual guide", "4 nights shared accommodation (dinners & breakfasts)", "1 night traditional Berber luxury camp", "Camel trekking in Erg Chebbi", "All entrance fees"],
+    groupPricing: [
+      { minPax: 2,  maxPax: 5,  pricePerPerson: 570 },
+      { minPax: 6,  maxPax: 10, pricePerPerson: 545 },
+      { minPax: 11, maxPax: 16, pricePerPerson: 520 },
+      { minPax: 17, maxPax: 25, pricePerPerson: 490 },
+    ],
+    image: "/images/tour_4day-students.jpg",
+  },
+  {
+    id: "spring-sahara",
+    title: "Spring 2026: Sahara Adventure",
+    days: 5,
+    nights: 4,
+    basePrice: 549,
+    privatePrice: 649,
+    description: "A special spring edition focused entirely on the Sahara experience. Perfect weather, blooming desert flowers, and the most magical time to visit the dunes.",
+    highlights: ["Spring desert blooms", "Extended Sahara time", "Sandboarding", "Star photography workshop", "Berber cultural evening"],
+    included: ["4 nights shared accommodation", "Daily breakfast & dinner", "Airport transfers", "Private transport", "English-speaking guide", "Camel trek", "Sandboarding", "Star photography session"],
+    groupPricing: [
+      { minPax: 2,  maxPax: 5,  pricePerPerson: 599 },
+      { minPax: 6,  maxPax: 10, pricePerPerson: 570 },
+      { minPax: 11, maxPax: 16, pricePerPerson: 549 },
+      { minPax: 17, maxPax: 25, pricePerPerson: 519 },
+    ],
+    image: "/images/tour_4day-students.jpg",
+  },
+  {
+    id: "summer-grand",
+    title: "Summer 2026: Grand Morocco",
+    days: 8,
+    nights: 7,
+    basePrice: 799,
+    privatePrice: 949,
+    description: "The grand summer adventure covering everything — Marrakech, Sahara, Fes, Chefchaouen, and the coast. The ultimate student summer break destination.",
+    highlights: ["All imperial cities", "Sahara desert camp", "Chefchaouen blue city", "Essaouira coast", "Beach time", "Atlas Mountains"],
+    included: ["7 nights shared accommodation", "Daily breakfast & dinner", "Airport transfers", "Private transport", "English-speaking guide", "Camel trek", "All entrance fees"],
+    groupPricing: [
+      { minPax: 2,  maxPax: 5,  pricePerPerson: 860 },
+      { minPax: 6,  maxPax: 10, pricePerPerson: 830 },
+      { minPax: 11, maxPax: 16, pricePerPerson: 799 },
+      { minPax: 17, maxPax: 25, pricePerPerson: 759 },
+    ],
+    image: "/images/tour_4day-students.jpg",
+  },
+];
+
+const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
+  {
+    id: "wise",
+    label: "Wise (Bank Transfer)",
+    link: "https://wise.com/pay/r/besttravelmorocco",
+    instructions: "Send to Wise account @besttravelmorocco — reference your booking number. 30% deposit to confirm, balance 7 days before departure.",
+    enabled: true,
+  },
+  {
+    id: "paypal",
+    label: "PayPal",
+    link: "https://paypal.me/besttravelmorocco",
+    instructions: "Pay via PayPal Friends & Family to avoid fees, or Goods & Services (+3.5% fee). Reference your booking number in the note.",
+    enabled: true,
+  },
+  {
+    id: "card",
+    label: "Credit / Debit Card",
+    link: "https://besttravelmorocco.com/book",
+    instructions: "Visa, Mastercard, and Amex accepted via our secure booking form. 3D Secure enabled. No extra fees.",
+    enabled: true,
+  },
+];
+
+export const studentCatalogStore = {
+  getAll(): StudentTour[] {
+    const stored = load<StudentTour[]>(STUDENT_CATALOG_KEY, []);
+    if (stored.length === 0) {
+      save(STUDENT_CATALOG_KEY, DEFAULT_STUDENT_TOURS);
+      return DEFAULT_STUDENT_TOURS;
+    }
+    return stored;
+  },
+  update(id: string, updates: Partial<StudentTour>): StudentTour | null {
+    const all = this.getAll();
+    const idx = all.findIndex((t) => t.id === id);
+    if (idx === -1) return null;
+    all[idx] = { ...all[idx], ...updates };
+    save(STUDENT_CATALOG_KEY, all);
+    return all[idx];
+  },
+  reset() {
+    save(STUDENT_CATALOG_KEY, DEFAULT_STUDENT_TOURS);
+    return DEFAULT_STUDENT_TOURS;
+  },
+};
+
+export const paymentMethodsStore = {
+  getAll(): PaymentMethod[] {
+    const stored = load<PaymentMethod[]>(PAYMENT_METHODS_KEY, []);
+    if (stored.length === 0) {
+      save(PAYMENT_METHODS_KEY, DEFAULT_PAYMENT_METHODS);
+      return DEFAULT_PAYMENT_METHODS;
+    }
+    return stored;
+  },
+  update(id: PaymentMethod["id"], updates: Partial<PaymentMethod>): PaymentMethod[] {
+    const all = this.getAll();
+    const idx = all.findIndex((m) => m.id === id);
+    if (idx !== -1) all[idx] = { ...all[idx], ...updates };
+    save(PAYMENT_METHODS_KEY, all);
+    return all;
+  },
+};
+
+// ══════════════════════════════════════════════════════════════
 // BOOKING STORE
 // ══════════════════════════════════════════════════════════════
 const BOOKING_KEY = "btm_bookings";
@@ -496,15 +682,23 @@ export const departureStore = {
     tourId: string;
     tourName: string;
     count: number;
-    startWeeks: number;
+    startWeeks?: number;
+    startDate?: string;       // ISO date string, overrides startWeeks
     maxSeats: number;
     pricePerPerson?: number;
   }): number {
     const all = this.getAll();
     const maxId = all.reduce((m, d) => Math.max(m, d.id), 0);
     const now = new Date().toISOString();
-    let cursor = addDaysDate(new Date(), opts.startWeeks * 7);
+    let cursor: Date;
+    if (opts.startDate) {
+      cursor = new Date(opts.startDate + "T00:00:00");
+    } else {
+      cursor = addDaysDate(new Date(), (opts.startWeeks ?? 0) * 7);
+    }
     let next = nextThursdayDate(cursor);
+    // If cursor IS already a Thursday, use it directly
+    if (cursor.getDay() === 4) next = cursor;
     const rows: LocalDeparture[] = [];
     for (let i = 0; i < opts.count; i++) {
       rows.push({
