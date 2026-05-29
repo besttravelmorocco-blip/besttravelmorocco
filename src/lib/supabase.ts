@@ -1,13 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+// Anon key is public-safe by design (read-only public key)
+const SUPABASE_URL = "https://uxkfqxistjvtofskqtwy.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4a2ZxeGlzdGp2dG9mc2txdHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTIyNzEsImV4cCI6MjA5NTAyODI3MX0.iixXusModII-3K-RRGRtUpvukY2V4Zxy3ZYZiyhTXmI";
 
-if (!url || !key) {
-  console.warn("Supabase env vars not set — student trips DB features will be disabled.");
-}
-
-export const supabase = createClient(url ?? "https://placeholder.supabase.co", key ?? "placeholder");
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ─── Row types returned by Supabase (snake_case) ───────────────────────────
 export interface DbStudentTour {
