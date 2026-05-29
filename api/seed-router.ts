@@ -1,8 +1,8 @@
-import { createRouter, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import * as schema from "@db/schema";
+import { createRouter, publicQuery } from "./middleware.js";
+import { getDb } from "./queries/connection.js";
+import * as schema from "../db/schema.js";
 import { count } from "drizzle-orm";
-import { tours } from "@db/tours-data";
+import { tours } from "../db/tours-data.js";
 
 export const seedRouter = createRouter({
   status: publicQuery.query(async () => {

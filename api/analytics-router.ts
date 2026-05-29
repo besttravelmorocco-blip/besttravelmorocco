@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { createRouter, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import * as schema from "@db/schema";
-import { eq, desc, count, sum, gte, sql } from "drizzle-orm";
+import { createRouter, publicQuery } from "./middleware.js";
+import { getDb } from "./queries/connection.js";
+import * as schema from "../db/schema.js";
+import { eq, desc, count, sum, gte } from "drizzle-orm";
 import { subDays, format } from "date-fns";
 
 export const analyticsRouter = createRouter({
@@ -82,7 +82,7 @@ export const analyticsRouter = createRouter({
       eventType: z.string(),
       tourId: z.string().optional(),
       sessionId: z.string().optional(),
-      data: z.record(z.unknown()).optional(),
+      data: z.record(z.string(), z.unknown()).optional(),
     }))
     .mutation(async ({ input }) => {
       const db = getDb();

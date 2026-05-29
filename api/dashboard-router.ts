@@ -1,6 +1,6 @@
-import { createRouter, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import * as schema from "@db/schema";
+import { createRouter, publicQuery } from "./middleware.js";
+import { getDb } from "./queries/connection.js";
+import * as schema from "../db/schema.js";
 import { count, eq, desc } from "drizzle-orm";
 
 export const dashboardRouter = createRouter({

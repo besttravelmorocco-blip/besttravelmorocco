@@ -2,11 +2,11 @@ import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import type { HttpBindings } from "@hono/node-server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "./router";
-import { createContext } from "./context";
-import { env } from "./lib/env";
-import { createOAuthCallbackHandler } from "./kimi/auth";
-import { Paths } from "@contracts/constants";
+import { appRouter } from "./router.js";
+import { createContext } from "./context.js";
+import { env } from "./lib/env.js";
+import { createOAuthCallbackHandler } from "./kimi/auth.js";
+import { Paths } from "../contracts/constants.js";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -24,8 +24,8 @@ app.use("/api/trpc/*", async (c) => {
 app.post("/api/contact", async (c) => {
   try {
     const body = await c.req.json();
-    const { getDb } = await import("./queries/connection");
-    const schema = await import("@db/schema");
+    const { getDb } = await import("./queries/connection.js");
+    const schema = await import("../db/schema.js");
     const db = getDb();
     await db.insert(schema.inquiries).values({
       name: body.name ?? "",
@@ -50,7 +50,7 @@ export default app;
 
 if (env.isProduction) {
   const { serve } = await import("@hono/node-server");
-  const { serveStaticFiles } = await import("./lib/vite");
+  const { serveStaticFiles } = await import("./lib/vite.js");
   serveStaticFiles(app);
 
   const port = parseInt(process.env.PORT || "3000");

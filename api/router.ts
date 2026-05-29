@@ -1,14 +1,14 @@
-import { createRouter, publicQuery } from "./middleware";
-import { authRouter } from "./auth-router";
-import { dashboardRouter } from "./dashboard-router";
-import { toursRouter } from "./tours-router";
-import { inquiriesRouter } from "./inquiries-router";
-import { settingsRouter } from "./settings-router";
-import { seedRouter } from "./seed-router";
-import { bookingsRouter } from "./bookings-router";
-import { departuresRouter } from "./departures-router";
-import { pricingRouter } from "./pricing-router";
-import { analyticsRouter } from "./analytics-router";
+import { createRouter, publicQuery } from "./middleware.js";
+import { authRouter } from "./auth-router.js";
+import { dashboardRouter } from "./dashboard-router.js";
+import { toursRouter } from "./tours-router.js";
+import { inquiriesRouter } from "./inquiries-router.js";
+import { settingsRouter } from "./settings-router.js";
+import { seedRouter } from "./seed-router.js";
+import { bookingsRouter } from "./bookings-router.js";
+import { departuresRouter } from "./departures-router.js";
+import { pricingRouter } from "./pricing-router.js";
+import { analyticsRouter } from "./analytics-router.js";
 
 export const appRouter = createRouter({
   greet: createRouter({
