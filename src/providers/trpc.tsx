@@ -6,11 +6,12 @@
 import { type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  tourStore, blogStore, inquiryStore,
+  inquiryStore,
   settingsStore, getDashboardStats, getSeedStatus,
-  testimonialStore, mediaStore,
+  mediaStore,
   bookingStore, departureStore, pricingRuleStore, getAnalyticsOverview,
 } from "@/lib/localStore";
+import { sbTourStore, sbBlogStore, sbTestimonialStore } from "@/lib/supabaseStore";
 
 const queryClient = new QueryClient();
 
@@ -19,34 +20,18 @@ const queryHooks = {
   tours: {
     list: (opts?: any) => useQuery({
       queryKey: ["tours", "list", opts],
-      queryFn: () => {
-        let data = tourStore.getAll();
-        if (opts?.status) data = data.filter(t => t.status === opts.status);
-        if (opts?.search) {
-          const q = opts.search.toLowerCase();
-          data = data.filter(t => t.title.toLowerCase().includes(q) || t.fromCity.toLowerCase().includes(q));
-        }
-        return data;
-      },
+      queryFn: () => sbTourStore.getAll({ status: opts?.status, search: opts?.search }),
       staleTime: 0,
     }),
-    getById: (id: string) => useQuery({ queryKey: ["tours", id], queryFn: () => tourStore.getById(id) ?? null, enabled: !!id, staleTime: 0 }),
+    getById: (id: string) => useQuery({ queryKey: ["tours", id], queryFn: () => sbTourStore.getById(id), enabled: !!id, staleTime: 0 }),
   },
   blog: {
     list: (opts?: any) => useQuery({
       queryKey: ["blog", "list", opts],
-      queryFn: () => {
-        let data = blogStore.getAll();
-        if (opts?.status) data = data.filter(b => b.status === opts.status);
-        if (opts?.search) {
-          const q = opts.search.toLowerCase();
-          data = data.filter(b => b.title.toLowerCase().includes(q));
-        }
-        return data;
-      },
+      queryFn: () => sbBlogStore.getAll({ status: opts?.status, search: opts?.search }),
       staleTime: 0,
     }),
-    getById: (id: string) => useQuery({ queryKey: ["blog", id], queryFn: () => blogStore.getById(id) ?? null, enabled: !!id, staleTime: 0 }),
+    getById: (id: string) => useQuery({ queryKey: ["blog", id], queryFn: () => sbBlogStore.getById(id), enabled: !!id, staleTime: 0 }),
   },
   inquiries: {
     list: (opts?: any) => useQuery({
@@ -62,7 +47,7 @@ const queryHooks = {
   dashboard: {
     stats: () => useQuery({ queryKey: ["dashboard", "stats"], queryFn: () => getDashboardStats(), staleTime: 0 }),
     recentInquiries: () => useQuery({ queryKey: ["dashboard", "recent"], queryFn: () => inquiryStore.getRecent(5), staleTime: 0 }),
-    topTours: () => useQuery({ queryKey: ["dashboard", "top"], queryFn: () => tourStore.getAll().filter(t => t.status === "published").slice(0, 5), staleTime: 0 }),
+    topTours: () => useQuery({ queryKey: ["dashboard", "top"], queryFn: () => sbTourStore.getAll({ status: "published" }).then(t => t.slice(0, 5)), staleTime: 0 }),
   },
   settings: {
     get: () => useQuery({ queryKey: ["settings"], queryFn: () => settingsStore.get(), staleTime: 0 }),
@@ -71,7 +56,7 @@ const queryHooks = {
     status: () => useQuery({ queryKey: ["seed", "status"], queryFn: () => getSeedStatus(), staleTime: 0 }),
   },
   testimonials: {
-    list: () => useQuery({ queryKey: ["testimonials"], queryFn: () => testimonialStore.getAll(), staleTime: 0 }),
+    list: () => useQuery({ queryKey: ["testimonials"], queryFn: () => sbTestimonialStore.getAll(), staleTime: 0 }),
   },
   media: {
     list: () => useQuery({ queryKey: ["media"], queryFn: () => mediaStore.getAll(), staleTime: 0 }),
@@ -148,35 +133,35 @@ const mutationHooks = {
   tours: {
     create: (opts?: { onSuccess?: () => void }) => {
       const qc = useQueryClient();
-      return useMutation({ mutationFn: (d: any) => Promise.resolve(tourStore.create(d)), onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); } });
+      return useMutation({ mutationFn: (d: any) => sbTourStore.create(d), onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); } });
     },
     update: (opts?: { onSuccess?: () => void }) => {
       const qc = useQueryClient();
       return useMutation({
-        mutationFn: ({ id, ...data }: any) => { const r = tourStore.update(id, data); if (!r) throw new Error("Not found"); return Promise.resolve(r); },
+        mutationFn: ({ id, ...data }: any) => sbTourStore.update(id, data),
         onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); },
       });
     },
     delete: (opts?: { onSuccess?: () => void }) => {
       const qc = useQueryClient();
-      return useMutation({ mutationFn: (id: any) => Promise.resolve(tourStore.delete(id)), onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); } });
+      return useMutation({ mutationFn: (id: any) => sbTourStore.delete(id), onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); } });
     },
   },
   blog: {
     create: (opts?: { onSuccess?: () => void }) => {
       const qc = useQueryClient();
-      return useMutation({ mutationFn: (d: any) => Promise.resolve(blogStore.create(d)), onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); } });
+      return useMutation({ mutationFn: (d: any) => sbBlogStore.create(d), onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); } });
     },
     update: (opts?: { onSuccess?: () => void }) => {
       const qc = useQueryClient();
       return useMutation({
-        mutationFn: ({ id, ...data }: any) => { const r = blogStore.update(id, data); if (!r) throw new Error("Not found"); return Promise.resolve(r); },
+        mutationFn: ({ id, ...data }: any) => sbBlogStore.update(id, data),
         onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); },
       });
     },
     delete: (opts?: { onSuccess?: () => void }) => {
       const qc = useQueryClient();
-      return useMutation({ mutationFn: (id: any) => Promise.resolve(blogStore.delete(id)), onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); } });
+      return useMutation({ mutationFn: (id: any) => sbBlogStore.delete(id), onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); } });
     },
   },
   inquiries: {
@@ -209,8 +194,8 @@ const mutationHooks = {
     run: (opts?: { onSuccess?: () => void }) => {
       const qc = useQueryClient();
       return useMutation({
-        mutationFn: () => Promise.resolve(tourStore.seed()),
-        onSuccess: () => { qc.invalidateQueries(); localStorage.setItem("btm_seeded", "true"); opts?.onSuccess?.(); },
+        mutationFn: () => Promise.resolve({ seeded: 0, updated: 0, total: 0 }),
+        onSuccess: () => { qc.invalidateQueries(); opts?.onSuccess?.(); },
       });
     },
   },
@@ -271,18 +256,18 @@ const mutationHooks = {
   testimonials: {
     create: () => {
       const qc = useQueryClient();
-      return useMutation({ mutationFn: (t: any) => Promise.resolve(testimonialStore.create(t)), onSuccess: () => qc.invalidateQueries() });
+      return useMutation({ mutationFn: (t: any) => sbTestimonialStore.create(t), onSuccess: () => qc.invalidateQueries() });
     },
     update: () => {
       const qc = useQueryClient();
       return useMutation({
-        mutationFn: ({ id, ...data }: any) => { const r = testimonialStore.update(id, data); if (!r) throw new Error("Not found"); return Promise.resolve(r); },
+        mutationFn: ({ id, ...data }: any) => sbTestimonialStore.update(id, data),
         onSuccess: () => qc.invalidateQueries(),
       });
     },
     delete: () => {
       const qc = useQueryClient();
-      return useMutation({ mutationFn: (id: string) => Promise.resolve(testimonialStore.delete(id)), onSuccess: () => qc.invalidateQueries() });
+      return useMutation({ mutationFn: (id: string) => sbTestimonialStore.delete(id), onSuccess: () => qc.invalidateQueries() });
     },
   },
   media: {
