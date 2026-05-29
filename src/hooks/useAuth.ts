@@ -1,42 +1,50 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
-import { getStoredUser, isAuthenticated, logout, type AuthUser } from "@/lib/authStore";
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { logout as doSignOut } from "@/lib/authStore";
+import type { User } from "@supabase/supabase-js";
 
-type UseAuthOptions = {
-  redirectOnUnauthenticated?: boolean;
-  redirectPath?: string;
-};
+// Shape the layouts consume
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: "admin" | "editor";
+}
 
-export function useAuth(options?: UseAuthOptions) {
-  const { redirectOnUnauthenticated = false, redirectPath = "/login" } = options ?? {};
-  const navigate = useNavigate();
-  const [checked, setChecked] = useState(false);
+function toAuthUser(user: User): AuthUser {
+  return {
+    id: user.id,
+    name: (user.user_metadata?.full_name as string | undefined) ?? user.email?.split("@")[0] ?? "Admin",
+    email: user.email ?? "",
+    role: "admin",
+  };
+}
 
-  // Re-read auth state from localStorage
-  const user = useMemo<AuthUser | null>(() => getStoredUser(), [checked]);
-  const authenticated = useMemo(() => isAuthenticated(), [checked]);
-
-  const doLogout = useCallback(() => {
-    logout();
-  }, []);
+export function useAuth() {
+  const [user, setUser] = useState<AuthUser | null | undefined>(undefined);
 
   useEffect(() => {
-    setChecked(true);
-    if (redirectOnUnauthenticated && !isAuthenticated()) {
-      navigate(redirectPath);
-    }
-  }, [redirectOnUnauthenticated, redirectPath, navigate]);
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user ? toAuthUser(data.user) : null);
+    });
 
-  return useMemo(
-    () => ({
-      user,
-      isAuthenticated: authenticated,
-      isLoading: false,
-      isAdmin: user?.role === "admin",
-      isEditor: user?.role === "editor",
-      logout: doLogout,
-      refresh: () => setChecked(c => c + 1),
-    }),
-    [user, authenticated, doLogout, checked],
-  );
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ? toAuthUser(session.user) : null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const logout = useCallback(() => {
+    doSignOut();
+  }, []);
+
+  return {
+    user: user ?? null,
+    isAuthenticated: !!user,
+    isLoading: user === undefined,
+    isAdmin: true,
+    isEditor: false,
+    logout,
+  };
 }

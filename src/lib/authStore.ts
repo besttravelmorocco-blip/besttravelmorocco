@@ -1,92 +1,45 @@
 /* ═══════════════════════════════════════════
-   AUTH STORE — Client-side only
-   Uses localStorage for session persistence.
+   AUTH STORE — Supabase Auth
    ═══════════════════════════════════════════ */
 
-const AUTH_KEY = "btm_admin_auth";
+import { supabase } from "./supabase";
+import type { Session, User } from "@supabase/supabase-js";
 
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "editor";
-  token: string;
+export type { User };
+
+export async function login(email: string, password: string): Promise<User> {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data.user;
 }
 
-const DEFAULT_CREDENTIALS = {
-  username: import.meta.env.VITE_ADMIN_USER || "Amed",
-  password: import.meta.env.VITE_ADMIN_PASS || "",
-};
-
-export function getStoredUser(): AuthUser | null {
-  try {
-    const raw = localStorage.getItem(AUTH_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+export async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = "/login";
 }
 
-function storeUser(user: AuthUser) {
-  localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+export async function sendPasswordReset(email: string): Promise<void> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  if (error) throw error;
 }
 
-export function clearAuth() {
-  localStorage.removeItem(AUTH_KEY);
+export async function updatePassword(newPassword: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
 }
 
-export function isAuthenticated(): boolean {
-  return !!getStoredUser();
+export async function getSession(): Promise<Session | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session;
 }
 
-export function login(username: string, password: string): AuthUser | null {
-  const settingsRaw = localStorage.getItem("btm_settings");
-  const settings = settingsRaw ? JSON.parse(settingsRaw) : {};
-
-  const adminUsername = settings.adminUsername || DEFAULT_CREDENTIALS.username;
-  const adminPassword = settings.adminPassword || DEFAULT_CREDENTIALS.password;
-
-  if (username === adminUsername && password === adminPassword) {
-    const user: AuthUser = {
-      id: "admin-1",
-      name: settings.adminName || "Amed",
-      email: settings.adminEmail || "admin@besttravelmorocco.com",
-      role: "admin",
-      token: btoa(`${username}:${Date.now()}`),
-    };
-    storeUser(user);
-    return user;
-  }
-
-  // Also check editor credentials
-  const editorUsername = settings.editorUsername;
-  const editorPassword = settings.editorPassword;
-  if (editorUsername && editorPassword && username === editorUsername && password === editorPassword) {
-    const user: AuthUser = {
-      id: "editor-1",
-      name: settings.editorName || "Editor",
-      email: settings.editorEmail || "editor@besttravelmorocco.com",
-      role: "editor",
-      token: btoa(`${username}:${Date.now()}`),
-    };
-    storeUser(user);
-    return user;
-  }
-
-  return null;
-}
-
-export function logout() {
-  clearAuth();
-  window.location.reload();
-}
-
-export function updateCurrentUser(updates: Partial<AuthUser>) {
-  const user = getStoredUser();
-  if (user) {
-    const updated = { ...user, ...updates };
-    storeUser(updated);
-    return updated;
-  }
-  return null;
+export function onAuthStateChange(
+  callback: (session: Session | null) => void
+) {
+  const { data } = supabase.auth.onAuthStateChange((_, session) => {
+    callback(session);
+  });
+  return data.subscription;
 }
