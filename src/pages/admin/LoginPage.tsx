@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Globe, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_MS = 5 * 60 * 1000; // 5 minutes
+
 type View = "login" | "forgot";
 
 export default function LoginPage() {
@@ -19,6 +22,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
 
   // Forgot password state
   const [resetEmail, setResetEmail] = useState("");
@@ -26,15 +31,32 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
+  const isLocked = lockedUntil !== null && Date.now() < lockedUntil;
+  const lockMinsLeft = lockedUntil
+    ? Math.ceil((lockedUntil - Date.now()) / 60000)
+    : 0;
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLocked) return;
     setLoginError("");
     setLoginLoading(true);
     try {
       await login(email, password);
+      setAttempts(0);
       navigate("/");
     } catch (err: unknown) {
-      setLoginError(err instanceof Error ? err.message : "Invalid email or password");
+      const next = attempts + 1;
+      setAttempts(next);
+      if (next >= MAX_ATTEMPTS) {
+        setLockedUntil(Date.now() + LOCKOUT_MS);
+        setLoginError(`Too many failed attempts. Try again in 5 minutes or use "Forgot password?".`);
+      } else {
+        setLoginError(
+          `Invalid email or password. ${MAX_ATTEMPTS - next} attempt${MAX_ATTEMPTS - next === 1 ? "" : "s"} remaining.`
+        );
+      }
+      void err;
     } finally {
       setLoginLoading(false);
     }
@@ -128,17 +150,25 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {loginError && (
+              {isLocked ? (
+                <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700 flex items-center gap-2">
+                  <Lock className="h-4 w-4 shrink-0" />
+                  Account locked. Try again in {lockMinsLeft} minute{lockMinsLeft === 1 ? "" : "s"}, or{" "}
+                  <button type="button" onClick={() => { setView("forgot"); setResetEmail(email); }} className="underline font-medium">
+                    reset your password
+                  </button>.
+                </div>
+              ) : loginError ? (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 flex items-center gap-2">
                   <Lock className="h-4 w-4 shrink-0" />
                   {loginError}
                 </div>
-              )}
+              ) : null}
 
               <Button
                 type="submit"
-                disabled={loginLoading}
-                className="w-full h-11 bg-[#C19A5B] hover:bg-[#A88347] text-white font-semibold"
+                disabled={loginLoading || isLocked}
+                className="w-full h-11 bg-[#C19A5B] hover:bg-[#A88347] text-white font-semibold disabled:opacity-50"
               >
                 {loginLoading ? "Signing in..." : "Sign In"}
               </Button>

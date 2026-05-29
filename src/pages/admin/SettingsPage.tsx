@@ -7,14 +7,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   Settings, Globe, Phone, MapPin, Mail, Save, Send,
-  CheckCircle2, AlertCircle, Loader2, ExternalLink, Eye, EyeOff,
+  CheckCircle2, AlertCircle, Loader2, ExternalLink, Eye, EyeOff, ShieldCheck,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { getPublishConfig, savePublishConfig, publishToWebsite } from "@/lib/publishService";
+import { sendPasswordReset } from "@/lib/authStore";
+import { supabase } from "@/lib/supabase";
 
 export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Security tab state
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState("");
+
+  const handleSendReset = async () => {
+    setResetError("");
+    setResetLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error("No email found for current user");
+      await sendPasswordReset(user.email);
+      setResetSent(true);
+    } catch (err: unknown) {
+      setResetError(err instanceof Error ? err.message : "Failed to send reset email");
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   const [general, setGeneral] = useState({
     siteName: "Best Travel Morocco",
@@ -115,6 +137,9 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="publish" className="gap-1.5 text-xs sm:text-sm">
             <Send className="h-3.5 w-3.5" /> Publish
+          </TabsTrigger>
+          <TabsTrigger value="security" className="gap-1.5 text-xs sm:text-sm">
+            <ShieldCheck className="h-3.5 w-3.5" /> Security
           </TabsTrigger>
         </TabsList>
 
@@ -359,6 +384,49 @@ export default function SettingsPage() {
                 <p className="text-xs text-stone-400">
                   Configure a GitHub token above to enable publishing.
                 </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[#C19A5B]" /> Password
+              </CardTitle>
+              <CardDescription>
+                Change your admin password. A reset link will be sent to your registered email.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {resetSent ? (
+                <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  Reset link sent to your email. Check your inbox and follow the link to set a new password.
+                </div>
+              ) : (
+                <>
+                  {resetError && (
+                    <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      {resetError}
+                    </div>
+                  )}
+                  <Button
+                    onClick={handleSendReset}
+                    disabled={resetLoading}
+                    variant="outline"
+                    className="gap-2 border-[#C19A5B] text-[#C19A5B] hover:bg-[#C19A5B]/10"
+                  >
+                    {resetLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Mail className="h-4 w-4" />
+                    )}
+                    {resetLoading ? "Sending…" : "Send Password Reset Email"}
+                  </Button>
+                </>
               )}
             </CardContent>
           </Card>

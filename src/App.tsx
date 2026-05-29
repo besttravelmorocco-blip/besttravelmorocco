@@ -11,6 +11,7 @@ import SettingsPage from "@/pages/admin/SettingsPage";
 import PageBuilder from "@/components/PageBuilder";
 import LoginPage from "@/pages/admin/LoginPage";
 import ResetPasswordPage from "@/pages/admin/ResetPasswordPage";
+import ChangePasswordPage from "@/pages/admin/ChangePasswordPage";
 import BookingsPage from "@/pages/admin/BookingsPage";
 import StudentTripsPage from "@/pages/admin/StudentTripsPage";
 import PricingPage from "@/pages/admin/PricingPage";
@@ -36,6 +37,9 @@ function AuthGuard({ children }: { children: ReactNode }) {
     );
   }
   if (!session) return <Navigate to="/login" replace />;
+  if (session.user.user_metadata?.must_change_password) {
+    return <Navigate to="/change-password" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -70,6 +74,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/change-password" element={<ChangePasswordPage />} />
         <Route path="/admin/*" element={<AdminRoutes />} />
         <Route path="/*" element={<AdminRoutes />} />
       </Routes>
