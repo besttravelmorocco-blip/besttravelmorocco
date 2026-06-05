@@ -22,7 +22,12 @@ import {
   CalendarDays,
   Calculator,
   BarChart2,
+  Send,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
+import { publishToWebsite } from "@/lib/publishService";
 
 const sidebarNavItems = [
   {
@@ -102,6 +107,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [publishState, setPublishState] = useState<"idle" | "publishing" | "success" | "error">("idle");
+
+  const handlePublish = async () => {
+    setPublishState("publishing");
+    const result = await publishToWebsite(() => {});
+    setPublishState(result.success ? "success" : "error");
+    if (result.success) setTimeout(() => setPublishState("idle"), 3000);
+  };
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
@@ -217,14 +230,32 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-stone-500">
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+            <span className="hidden text-sm text-stone-500 sm:block">
+              {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </span>
+            <Button
+              onClick={handlePublish}
+              disabled={publishState === "publishing"}
+              size="sm"
+              className={cn(
+                "gap-2 text-xs font-semibold transition-all",
+                publishState === "success"
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : publishState === "error"
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "bg-[#D4A574] hover:bg-[#c49668] text-white"
+              )}
+            >
+              {publishState === "publishing" ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Publishing…</>
+              ) : publishState === "success" ? (
+                <><CheckCircle2 className="h-3.5 w-3.5" /> Published!</>
+              ) : publishState === "error" ? (
+                <><AlertCircle className="h-3.5 w-3.5" /> Failed — Retry</>
+              ) : (
+                <><Send className="h-3.5 w-3.5" /> Publish Site</>
+              )}
+            </Button>
           </div>
         </header>
 

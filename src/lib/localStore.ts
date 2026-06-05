@@ -303,7 +303,7 @@ export interface SiteSettings {
 const defaultSettings: SiteSettings = {
   siteName: "Best Travel Morocco",
   tagline: "Authentic Morocco Tours & Desert Experiences",
-  email: "info@besttravelmorocco.com",
+  email: "besttravelmorocco@gmail.com",
   phone: "+212 600-000000",
   whatsapp: "+212 600-000000",
   address: "Marrakech, Morocco",

@@ -7,7 +7,7 @@ import { type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   inquiryStore,
-  settingsStore, getDashboardStats, getSeedStatus,
+  settingsStore,
   mediaStore,
   bookingStore, departureStore, pricingRuleStore, getAnalyticsOverview,
 } from "@/lib/localStore";
@@ -45,7 +45,29 @@ const queryHooks = {
     }),
   },
   dashboard: {
-    stats: () => useQuery({ queryKey: ["dashboard", "stats"], queryFn: () => getDashboardStats(), staleTime: 0 }),
+    stats: () => useQuery({
+      queryKey: ["dashboard", "stats"],
+      queryFn: async () => {
+        const [tours, posts, testimonials] = await Promise.all([
+          sbTourStore.getAll(),
+          sbBlogStore.getAll(),
+          sbTestimonialStore.getAll(),
+        ]);
+        const inqs = inquiryStore.getAll();
+        const media = mediaStore.getAll();
+        return {
+          tours: tours.length,
+          publishedTours: tours.filter(t => t.status === "published").length,
+          blogPosts: posts.length,
+          totalInquiries: inqs.length,
+          newInquiries: inqs.filter((i: any) => i.status === "new").length,
+          testimonials: testimonials.length,
+          mediaFiles: media.length,
+          seoScore: 94,
+        };
+      },
+      staleTime: 0,
+    }),
     recentInquiries: () => useQuery({ queryKey: ["dashboard", "recent"], queryFn: () => inquiryStore.getRecent(5), staleTime: 0 }),
     topTours: () => useQuery({ queryKey: ["dashboard", "top"], queryFn: () => sbTourStore.getAll({ status: "published" }).then(t => t.slice(0, 5)), staleTime: 0 }),
   },
@@ -53,7 +75,18 @@ const queryHooks = {
     get: () => useQuery({ queryKey: ["settings"], queryFn: () => settingsStore.get(), staleTime: 0 }),
   },
   seed: {
-    status: () => useQuery({ queryKey: ["seed", "status"], queryFn: () => getSeedStatus(), staleTime: 0 }),
+    status: () => useQuery({
+      queryKey: ["seed", "status"],
+      queryFn: async () => {
+        const tours = await sbTourStore.getAll();
+        return {
+          toursCount: tours.length,
+          totalTours: 27,
+          needsSeeding: tours.length === 0,
+        };
+      },
+      staleTime: 0,
+    }),
   },
   testimonials: {
     list: () => useQuery({ queryKey: ["testimonials"], queryFn: () => sbTestimonialStore.getAll(), staleTime: 0 }),

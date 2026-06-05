@@ -106,7 +106,7 @@ export default function ToursPage() {
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditTour(tour); setShowForm(true); }}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => { if (confirm("Delete?")) deleteMutation.mutate({ id: tour.id }); }}><Trash2 className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => { if (confirm("Delete?")) deleteMutation.mutate(tour.id); }}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </td>
                     </tr>

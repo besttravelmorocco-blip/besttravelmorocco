@@ -7,8 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   Settings, Globe, Phone, MapPin, Mail, Save, Send,
-  CheckCircle2, AlertCircle, Loader2, ExternalLink, Eye, EyeOff, ShieldCheck,
+  CheckCircle2, AlertCircle, Loader2, ExternalLink, Eye, EyeOff, ShieldCheck, Trash2,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { trpc } from "@/providers/trpc";
 import { getPublishConfig, savePublishConfig, publishToWebsite } from "@/lib/publishService";
 import { sendPasswordReset } from "@/lib/authStore";
@@ -45,7 +46,7 @@ export default function SettingsPage() {
 
   const [contact, setContact] = useState({
     phone: "+212 677 365 421",
-    email: "hello@besttravelmorocco.com",
+    email: "besttravelmorocco@gmail.com",
     whatsapp: "+212677365421",
     address: "Angle bd Emile Zola et Rue Rethel, 7ème Étage N°20, Casablanca, Morocco",
   });
@@ -63,6 +64,22 @@ export default function SettingsPage() {
   const [publishState, setPublishState] = useState<"idle" | "publishing" | "success" | "error">("idle");
   const [publishMsg, setPublishMsg] = useState("");
   const [publishedFiles, setPublishedFiles] = useState<string[]>([]);
+
+  const queryClient = useQueryClient();
+  const [cacheCleared, setCacheCleared] = useState(false);
+
+  const handleClearCache = () => {
+    // Clear all localStorage keys belonging to this app
+    const keysToRemove = Object.keys(localStorage).filter(k =>
+      k.startsWith("btm_") || k.startsWith("tourStore") || k.startsWith("blogStore") ||
+      k.startsWith("inquiryStore") || k.startsWith("bookingStore") || k.startsWith("mediaStore") ||
+      k.startsWith("settingsStore") || k.startsWith("testimonialStore") || k.startsWith("publishConfig")
+    );
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    queryClient.clear();
+    setCacheCleared(true);
+    setTimeout(() => setCacheCleared(false), 3000);
+  };
 
   const updateSetting = trpc.settings.update.useMutation();
 
@@ -390,6 +407,34 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="security" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Trash2 className="h-4 w-4 text-[#C19A5B]" /> Clear App Cache
+              </CardTitle>
+              <CardDescription>
+                Remove all locally cached data and reset in-memory query cache. Use this if the
+                admin shows stale content or behaves unexpectedly.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {cacheCleared ? (
+                <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  Cache cleared. All data will reload fresh from Supabase.
+                </div>
+              ) : (
+                <Button
+                  onClick={handleClearCache}
+                  variant="outline"
+                  className="gap-2 border-red-300 text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" /> Clear All Cache
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">

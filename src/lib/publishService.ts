@@ -1,4 +1,6 @@
-import { tourStore, blogStore, testimonialStore, settingsStore } from "./localStore";
+import { settingsStore } from "./localStore";
+import { sbTourStore, sbBlogStore, sbTestimonialStore } from "./supabaseStore";
+
 
 interface PublishConfig {
   githubToken: string;
@@ -45,7 +47,7 @@ async function upsertFile(
   content: string,
   message: string
 ): Promise<void> {
-  const encoded = btoa(unescape(encodeURIComponent(content)));
+  const encoded = btoa(new TextEncoder().encode(content).reduce((s, b) => s + String.fromCharCode(b), ""));
 
   // Try to get current SHA (file may not exist yet)
   const getRes = await githubRequest("GET", `/repos/${owner}/${repo}/contents/${filePath}`, token);
@@ -87,19 +89,19 @@ export async function publishToWebsite(
 
     // Tours
     onProgress("Publishing tours…");
-    const tours = tourStore.getAll();
+    const tours = await sbTourStore.getAll();
     await upsertFile(cfg.githubToken, cfg.repoOwner, cfg.repoName, "data/tours.json", JSON.stringify(tours, null, 2), msg);
     files.push("data/tours.json");
 
     // Blog posts
     onProgress("Publishing blog posts…");
-    const posts = blogStore.getAll();
+    const posts = await sbBlogStore.getAll();
     await upsertFile(cfg.githubToken, cfg.repoOwner, cfg.repoName, "data/blog.json", JSON.stringify(posts, null, 2), msg);
     files.push("data/blog.json");
 
     // Testimonials
     onProgress("Publishing testimonials…");
-    const testimonials = testimonialStore.getAll();
+    const testimonials = await sbTestimonialStore.getAll();
     await upsertFile(cfg.githubToken, cfg.repoOwner, cfg.repoName, "data/testimonials.json", JSON.stringify(testimonials, null, 2), msg);
     files.push("data/testimonials.json");
 
