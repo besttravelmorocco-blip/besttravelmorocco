@@ -3,7 +3,8 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Map, Globe, FileText,
   HelpCircle, Settings, ChevronDown, ChevronRight,
-  Star, Image, Users, Mail, ExternalLink, Wrench, type LucideIcon,
+  Star, Image, Users, Mail, ExternalLink, Wrench,
+  CalendarDays, type LucideIcon,
 } from 'lucide-react';
 
 const CITY_GROUPS = [
@@ -29,8 +30,9 @@ const CONTENT: { label: string; icon: LucideIcon; to: string }[] = [
 ];
 
 const BUSINESS: { label: string; icon: LucideIcon; to: string }[] = [
+  { label: 'Bookings', icon: CalendarDays, to: '/bookings' },
+  { label: 'Staff & Drivers', icon: Users, to: '/staff' },
   { label: 'Inquiries', icon: Mail, to: '/inquiries' },
-  { label: 'Team', icon: Users, to: '/team' },
 ];
 
 const SYSTEM: { label: string; icon: LucideIcon; to: string }[] = [

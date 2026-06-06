@@ -101,6 +101,139 @@ export interface Testimonial {
   created_at: string;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOOKING SYSTEM TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type BookingStatus = 'enquiry' | 'quoted' | 'confirmed' | 'active' | 'completed' | 'cancelled';
+export type PaymentMethod = 'paypal' | 'stripe' | 'wise' | 'cash' | 'bank_transfer';
+export type StaffRole = 'driver' | 'guide_fes' | 'guide_marrakech' | 'guide_volubilis' | 'guide_general' | 'manager';
+export type PaymentType = 'deposit' | 'balance' | 'extra' | 'refund';
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  nationality: string | null;
+  hotel: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: StaffRole;
+  phone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  photo_url: string | null;
+  languages: string[];
+  available: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ItineraryDayOverride {
+  day: number;
+  title: string;
+  description: string;
+  accommodation?: string;
+}
+
+export interface OpBooking {
+  id: string;
+  reference: string;
+  client_id: string | null;
+  client_name: string;
+  client_email: string | null;
+  client_phone: string | null;
+  client_whatsapp: string | null;
+  client_nationality: string | null;
+  client_hotel: string | null;
+  tour_id: string | null;
+  tour_name: string;
+  start_date: string | null;
+  end_date: string | null;
+  num_adults: number;
+  num_children: number;
+  pickup_location: string | null;
+  pickup_time: string | null;
+  driver_id: string | null;
+  guide_fes_id: string | null;
+  guide_marrakech_id: string | null;
+  guide_volubilis_id: string | null;
+  total_price: number | null;
+  currency: string;
+  deposit_amount: number | null;
+  deposit_method: PaymentMethod | null;
+  deposit_reference: string | null;
+  deposit_paid: boolean;
+  deposit_paid_date: string | null;
+  balance_paid: boolean;
+  balance_paid_date: string | null;
+  status: BookingStatus;
+  itinerary: ItineraryDayOverride[] | null;
+  internal_notes: string | null;
+  client_notes: string | null;
+  special_requirements: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OpPayment {
+  id: string;
+  booking_id: string;
+  amount: number;
+  currency: string;
+  type: PaymentType;
+  method: PaymentMethod;
+  reference: string | null;
+  paid_at: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+// Helpers
+export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
+  enquiry: 'Enquiry',
+  quoted: 'Quoted',
+  confirmed: 'Confirmed',
+  active: 'Active',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
+
+export const BOOKING_STATUS_COLORS: Record<BookingStatus, string> = {
+  enquiry: 'badge-gray',
+  quoted: 'badge-blue',
+  confirmed: 'badge-sand',
+  active: 'badge-green',
+  completed: 'badge-success',
+  cancelled: 'badge-error',
+};
+
+export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
+  driver: 'Driver',
+  guide_fes: 'Guide — Fes',
+  guide_marrakech: 'Guide — Marrakech',
+  guide_volubilis: 'Guide — Volubilis',
+  guide_general: 'Guide — General',
+  manager: 'Manager',
+};
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  paypal: 'PayPal',
+  stripe: 'Card (Stripe)',
+  wise: 'Wise Transfer',
+  cash: 'Cash',
+  bank_transfer: 'Bank Transfer',
+};
+
 // ─── Parse helpers (DB stores arrays as JSON strings) ────────────────────────
 
 export function parseJsonField<T>(value: string | null | undefined, fallback: T): T {

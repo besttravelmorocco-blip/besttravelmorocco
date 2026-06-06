@@ -16,6 +16,9 @@ import InquiriesPage from '@/pages/inquiries/InquiriesPage';
 import MediaPage from '@/pages/media/MediaPage';
 import SettingsPage from '@/pages/settings/SettingsPage';
 import Setup from '@/pages/Setup';
+import BookingsPage from '@/pages/bookings/BookingsPage';
+import BookingDetail from '@/pages/bookings/BookingDetail';
+import StaffPage from '@/pages/staff/StaffPage';
 
 // ── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -75,6 +78,9 @@ export default function App() {
           <Route path="inquiries" element={<InquiriesPage />} />
           <Route path="media" element={<MediaPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="bookings" element={<BookingsPage />} />
+          <Route path="bookings/:id" element={<BookingDetail />} />
+          <Route path="staff" element={<StaffPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
