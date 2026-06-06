@@ -105,7 +105,15 @@ export interface Testimonial {
 // BOOKING SYSTEM TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type BookingStatus = 'enquiry' | 'quoted' | 'confirmed' | 'active' | 'completed' | 'cancelled';
+export type BookingStatus =
+  | 'enquiry'
+  | 'pending_review'
+  | 'confirmed'
+  | 'deposit_paid'
+  | 'active'
+  | 'completed'
+  | 'rejected'
+  | 'cancelled';
 export type PaymentMethod = 'paypal' | 'stripe' | 'wise' | 'cash' | 'bank_transfer';
 export type StaffRole = 'driver' | 'guide_fes' | 'guide_marrakech' | 'guide_volubilis' | 'guide_general' | 'manager';
 export type PaymentType = 'deposit' | 'balance' | 'extra' | 'refund';
@@ -177,6 +185,15 @@ export interface OpBooking {
   balance_paid: boolean;
   balance_paid_date: string | null;
   status: BookingStatus;
+  // Confirmation window fields (migration 008)
+  submitted_at: string | null;
+  review_deadline: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  confirmation_sent_at: string | null;
+  rejection_reason: string | null;
+  payment_link_sent_at: string | null;
+  payment_link_expires_at: string | null;
   itinerary: ItineraryDayOverride[] | null;
   internal_notes: string | null;
   client_notes: string | null;
@@ -200,21 +217,25 @@ export interface OpPayment {
 
 // Helpers
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
-  enquiry: 'Enquiry',
-  quoted: 'Quoted',
-  confirmed: 'Confirmed',
-  active: 'Active',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+  enquiry:        'Enquiry',
+  pending_review: 'Pending Review',
+  confirmed:      'Confirmed',
+  deposit_paid:   'Deposit Paid',
+  active:         'Active',
+  completed:      'Completed',
+  rejected:       'Rejected',
+  cancelled:      'Cancelled',
 };
 
 export const BOOKING_STATUS_COLORS: Record<BookingStatus, string> = {
-  enquiry: 'badge-gray',
-  quoted: 'badge-blue',
-  confirmed: 'badge-sand',
-  active: 'badge-green',
-  completed: 'badge-success',
-  cancelled: 'badge-error',
+  enquiry:        'badge-gray',
+  pending_review: 'badge-yellow',
+  confirmed:      'badge-blue',
+  deposit_paid:   'badge-sand',
+  active:         'badge-green',
+  completed:      'badge-success',
+  rejected:       'badge-red',
+  cancelled:      'badge-error',
 };
 
 export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {

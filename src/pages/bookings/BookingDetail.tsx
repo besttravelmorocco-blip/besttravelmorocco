@@ -13,7 +13,7 @@ import {
   ChevronDown, Plus, Copy, ExternalLink, Check, Trash2,
 } from 'lucide-react';
 
-const STATUS_PIPELINE: BookingStatus[] = ['enquiry', 'quoted', 'confirmed', 'active', 'completed', 'cancelled'];
+const STATUS_PIPELINE: BookingStatus[] = ['enquiry', 'pending_review', 'confirmed', 'deposit_paid', 'active', 'completed', 'cancelled'];
 const PAYMENT_TYPES: PaymentType[] = ['deposit', 'balance', 'extra', 'refund'];
 const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = { deposit: 'Deposit', balance: 'Balance', extra: 'Extra', refund: 'Refund' };
 

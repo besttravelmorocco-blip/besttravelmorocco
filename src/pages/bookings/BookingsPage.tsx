@@ -11,13 +11,15 @@ import {
 import BookingWizard from './BookingWizard';
 
 const STATUS_FILTERS: { value: BookingStatus | 'all'; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'enquiry', label: 'Enquiry' },
-  { value: 'quoted', label: 'Quoted' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'active', label: 'Active' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'all',            label: 'All' },
+  { value: 'pending_review', label: 'Pending Review' },
+  { value: 'enquiry',        label: 'Enquiry' },
+  { value: 'confirmed',      label: 'Confirmed' },
+  { value: 'deposit_paid',   label: 'Deposit Paid' },
+  { value: 'active',         label: 'Active' },
+  { value: 'completed',      label: 'Completed' },
+  { value: 'rejected',       label: 'Rejected' },
+  { value: 'cancelled',      label: 'Cancelled' },
 ];
 
 export default function BookingsPage() {
