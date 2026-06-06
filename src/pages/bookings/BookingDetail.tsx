@@ -4,13 +4,13 @@ import { supabase } from '@/lib/supabase';
 import type { OpBooking, OpPayment, StaffMember, BookingStatus, PaymentMethod, PaymentType } from '@/lib/supabase';
 import {
   BOOKING_STATUS_LABELS, BOOKING_STATUS_COLORS,
-  PAYMENT_METHOD_LABELS, STAFF_ROLE_LABELS,
+  PAYMENT_METHOD_LABELS,
 } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
   ArrowLeft, RefreshCw, AlertCircle, Edit2, Save, X,
-  Phone, MessageSquare, Mail, DollarSign, Users,
-  ChevronDown, Plus, Copy, ExternalLink, Check, Trash2,
+  Phone, MessageSquare, Mail, DollarSign, Clock,
+  CheckCircle2, XCircle, Plus, Copy, ExternalLink, Check, Trash2,
 } from 'lucide-react';
 
 const STATUS_PIPELINE: BookingStatus[] = ['enquiry', 'pending_review', 'confirmed', 'deposit_paid', 'active', 'completed', 'cancelled'];
@@ -48,6 +48,8 @@ export default function BookingDetail() {
   const [savingPayment, setSavingPayment] = useState(false);
   const [showTourSheet, setShowTourSheet] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -94,6 +96,40 @@ export default function BookingDetail() {
     toast.success(`Status → ${BOOKING_STATUS_LABELS[status]}`);
   }
 
+  async function confirmBooking() {
+    if (!booking) return;
+    const now = new Date().toISOString();
+    const expires = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    const { error: e } = await supabase.from('op_bookings').update({
+      status: 'confirmed',
+      reviewed_at: now,
+      payment_link_expires_at: expires,
+      updated_at: now,
+    }).eq('id', booking.id);
+    if (e) { toast.error(`Confirm failed: ${e.message}`); return; }
+    setBooking(prev => prev ? { ...prev, status: 'confirmed', reviewed_at: now, payment_link_expires_at: expires } : prev);
+    setForm(prev => ({ ...prev, status: 'confirmed' }));
+    toast.success('Booking confirmed — client has 48h to pay deposit');
+  }
+
+  async function rejectBooking() {
+    if (!booking) return;
+    if (!rejectReason.trim()) { toast.error('Rejection reason is required.'); return; }
+    const now = new Date().toISOString();
+    const { error: e } = await supabase.from('op_bookings').update({
+      status: 'rejected',
+      reviewed_at: now,
+      rejection_reason: rejectReason.trim(),
+      updated_at: now,
+    }).eq('id', booking.id);
+    if (e) { toast.error(`Reject failed: ${e.message}`); return; }
+    setBooking(prev => prev ? { ...prev, status: 'rejected', reviewed_at: now, rejection_reason: rejectReason.trim() } : prev);
+    setForm(prev => ({ ...prev, status: 'rejected' }));
+    setShowRejectModal(false);
+    setRejectReason('');
+    toast.success('Booking rejected');
+  }
+
   async function addPayment() {
     if (!booking) return;
     if (!payForm.amount || parseFloat(payForm.amount) <= 0) { toast.error('Enter a valid amount.'); return; }
@@ -112,10 +148,28 @@ export default function BookingDetail() {
     if (e) { toast.error(`Payment failed: ${e.message}`); return; }
     setPayments(prev => [data as OpPayment, ...prev]);
 
-    // Auto-mark deposit/balance paid flags
+    // Auto-mark deposit/balance flags and advance status
     if (payForm.type === 'deposit') {
-      await supabase.from('op_bookings').update({ deposit_paid: true, deposit_paid_date: payForm.paid_at, deposit_method: payForm.method }).eq('id', booking.id);
-      setBooking(prev => prev ? { ...prev, deposit_paid: true, deposit_paid_date: payForm.paid_at, deposit_method: payForm.method as PaymentMethod } : prev);
+      const depositUpdate: Record<string, unknown> = {
+        deposit_paid: true,
+        deposit_paid_date: payForm.paid_at,
+        deposit_method: payForm.method,
+      };
+      // Confirmed booking receiving deposit → advance to deposit_paid
+      if (booking.status === 'confirmed') {
+        depositUpdate.status = 'deposit_paid';
+      }
+      await supabase.from('op_bookings').update(depositUpdate).eq('id', booking.id);
+      setBooking(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          deposit_paid: true,
+          deposit_paid_date: payForm.paid_at,
+          deposit_method: payForm.method as PaymentMethod,
+          ...(prev.status === 'confirmed' ? { status: 'deposit_paid' as BookingStatus } : {}),
+        };
+      });
     }
     if (payForm.type === 'balance') {
       await supabase.from('op_bookings').update({ balance_paid: true, balance_paid_date: payForm.paid_at }).eq('id', booking.id);
@@ -185,8 +239,13 @@ export default function BookingDetail() {
     });
   }
 
+  // Date-only strings (YYYY-MM-DD) — append time so JS doesn't shift by timezone
   const fmtDate = (d: string | null) =>
     d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+  // Full ISO timestamps (TIMESTAMPTZ from DB)
+  const fmtTs = (ts: string | null) =>
+    ts ? new Date(ts).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
   const fmtCcy = (amount: number | null, ccy = 'EUR') => {
     if (!amount) return '—';
@@ -227,6 +286,9 @@ export default function BookingDetail() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <h1 className="page-title" style={{ fontSize: 20 }}>{b.client_name}</h1>
               <span className={`badge ${BOOKING_STATUS_COLORS[b.status]}`}>{BOOKING_STATUS_LABELS[b.status]}</span>
+              {b.status === 'pending_review' && b.review_deadline && new Date(b.review_deadline) < new Date() && (
+                <span className="badge badge-red" style={{ fontSize: 10 }}>OVERDUE</span>
+              )}
             </div>
             <p className="text-3" style={{ fontSize: 12, fontFamily: 'monospace', marginTop: 2 }}>{b.reference}</p>
           </div>
@@ -267,6 +329,52 @@ export default function BookingDetail() {
           ))}
         </div>
       </div>
+
+      {/* Confirmation window — review panel (pending_review only) */}
+      {b.status === 'pending_review' && (() => {
+        const deadline = b.review_deadline ? new Date(b.review_deadline) : null;
+        const now = new Date();
+        const isOverdue = deadline ? deadline < now : false;
+        const hoursLeft = deadline ? Math.round((deadline.getTime() - now.getTime()) / 3600000) : null;
+        const urgencyColor = isOverdue ? '#F87171' : (hoursLeft !== null && hoursLeft < 6 ? '#FBBF24' : 'var(--text-2)');
+        return (
+          <div className="card" style={{ marginBottom: 20, borderLeft: `3px solid ${urgencyColor}`, padding: '14px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Clock size={14} style={{ color: urgencyColor, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>Awaiting Admin Review</span>
+                  {isOverdue && <span className="badge badge-red" style={{ fontSize: 10 }}>OVERDUE</span>}
+                </div>
+                {b.submitted_at && (
+                  <span className="text-3" style={{ fontSize: 12 }}>Submitted: {fmtTs(b.submitted_at)}</span>
+                )}
+                {deadline && (
+                  <span style={{ fontSize: 12, color: urgencyColor, fontWeight: isOverdue ? 700 : 400 }}>
+                    Deadline: {fmtTs(b.review_deadline)}{isOverdue ? ' — MISSED' : hoursLeft !== null ? ` (${hoursLeft}h remaining)` : ''}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                <button
+                  onClick={() => setShowRejectModal(true)}
+                  className="btn btn-outline"
+                  style={{ fontSize: 12, color: '#F87171', borderColor: '#F87171' }}
+                >
+                  <XCircle size={13} /> Reject
+                </button>
+                <button
+                  onClick={confirmBooking}
+                  className="btn btn-primary"
+                  style={{ fontSize: 12, background: '#34D399', borderColor: '#34D399', color: '#fff' }}
+                >
+                  <CheckCircle2 size={13} /> Confirm Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
         {/* Left column */}
@@ -599,6 +707,43 @@ export default function BookingDetail() {
                   <span style={{ color: 'var(--text-2)' }}>{PAYMENT_METHOD_LABELS[b.deposit_method]}</span>
                 </div>
               )}
+              {b.submitted_at && (
+                <>
+                  <div style={{ height: 1, background: 'var(--border)', margin: '2px 0' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Submitted</span>
+                    <span style={{ color: 'var(--text-2)' }}>{fmtTs(b.submitted_at)}</span>
+                  </div>
+                </>
+              )}
+              {b.review_deadline && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Review deadline</span>
+                  <span style={{ color: new Date(b.review_deadline) < new Date() ? '#F87171' : 'var(--text-2)', fontWeight: new Date(b.review_deadline) < new Date() ? 700 : 400 }}>
+                    {fmtTs(b.review_deadline)}
+                  </span>
+                </div>
+              )}
+              {b.reviewed_at && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Reviewed</span>
+                  <span style={{ color: 'var(--text-2)' }}>{fmtTs(b.reviewed_at)}</span>
+                </div>
+              )}
+              {b.rejection_reason && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 2 }}>
+                  <span style={{ color: '#F87171', fontWeight: 700 }}>Rejection reason</span>
+                  <span style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{b.rejection_reason}</span>
+                </div>
+              )}
+              {b.payment_link_expires_at && b.status === 'confirmed' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Payment link expires</span>
+                  <span style={{ color: new Date(b.payment_link_expires_at) < new Date() ? '#F87171' : 'var(--sand)', fontWeight: 600 }}>
+                    {fmtTs(b.payment_link_expires_at)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -694,6 +839,49 @@ export default function BookingDetail() {
                   <MessageSquare size={13} /> Open in WhatsApp
                 </a>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject booking modal */}
+      {showRejectModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={e => { if (e.target === e.currentTarget) { setShowRejectModal(false); setRejectReason(''); } }}
+        >
+          <div style={{ background: 'var(--bg-card)', borderRadius: 10, width: '100%', maxWidth: 420, boxShadow: '0 16px 48px rgba(0,0,0,0.4)' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#F87171' }}>Reject Booking</h3>
+              <button onClick={() => { setShowRejectModal(false); setRejectReason(''); }} className="btn-icon"><X size={16} /></button>
+            </div>
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                The client will be notified that their booking request was declined. A reason is required.
+              </p>
+              <div>
+                <label className="form-label">Reason for rejection <span style={{ color: '#F87171' }}>*</span></label>
+                <textarea
+                  className="form-input"
+                  rows={4}
+                  placeholder="e.g. Dates unavailable, tour fully booked for this period…"
+                  value={rejectReason}
+                  onChange={e => setRejectReason(e.target.value)}
+                  style={{ resize: 'vertical' }}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => { setShowRejectModal(false); setRejectReason(''); }} className="btn btn-outline">Cancel</button>
+              <button
+                onClick={rejectBooking}
+                disabled={!rejectReason.trim()}
+                className="btn btn-primary"
+                style={{ background: '#F87171', borderColor: '#F87171', opacity: rejectReason.trim() ? 1 : 0.5 }}
+              >
+                <XCircle size={13} /> Confirm Rejection
+              </button>
             </div>
           </div>
         </div>
