@@ -5,6 +5,7 @@ import {
   ChevronDown, ChevronRight, Star, Image, Users, Mail,
   ExternalLink, Wrench, CalendarDays, Navigation, Car,
   Building2, ShoppingBag, TrendingUp, Tag, Compass, BarChart3,
+  Leaf, GraduationCap, Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -49,6 +50,12 @@ const OPERATIONS: NavDef[] = [
 const PRICING: NavDef[] = [
   { label: 'Pricing Engine', icon: TrendingUp, to: '/pricing' },
   { label: 'Coupons',        icon: Tag,        to: '/coupons' },
+];
+
+const EXPERIENCES: NavDef[] = [
+  { label: 'Experiences Manager', icon: Sparkles,     to: '/experiences' },
+  { label: 'Yoga Retreats',       icon: Leaf,         to: '/experiences?type=yoga_retreat' },
+  { label: 'Student Trips',       icon: GraduationCap, to: '/experiences?type=student_trip' },
 ];
 
 const REPORTS: NavDef[] = [
@@ -157,6 +164,10 @@ export default function Sidebar() {
         {/* Operations */}
         <SectionLabel label="Operations" />
         {OPERATIONS.map(item => <NavItem key={item.to} {...item} />)}
+
+        {/* Experiences */}
+        <SectionLabel label="Experiences" />
+        {EXPERIENCES.map(item => <NavItem key={item.to} {...item} />)}
 
         {/* Pricing */}
         <SectionLabel label="Pricing" />

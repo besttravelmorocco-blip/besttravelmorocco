@@ -474,6 +474,60 @@ export interface EmailTemplate {
   updated_at: string;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPERIENCES / PROGRAMS TYPES  (yoga_retreat | upcoming_trip | student_trip)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type ExperienceType  = 'yoga_retreat' | 'student_trip' | 'upcoming_trip';
+export type DepartureType   = 'fixed_dates'  | 'flexible_window';
+export type PricingModel    = 'fixed'        | 'flexible';
+
+export interface ExperienceItineraryBlock {
+  day: number;
+  title: string;
+  description: string;
+}
+
+export interface ExperienceProduct {
+  id: string;
+  title: string;
+  slug: string;
+  type: ExperienceType;
+  description: string | null;
+  highlights: string[];
+  itinerary: ExperienceItineraryBlock[];
+  duration_days: number | null;
+  duration_nights: number | null;
+  departure_type: DepartureType;
+  fixed_departures: string[];
+  flexible_months: string[];
+  pricing_model: PricingModel;
+  price_per_person: number | null;
+  starting_price: number | null;
+  included: string[];
+  excluded: string[];
+  images: string[];
+  accommodation_level: string | null;
+  capacity: number | null;
+  min_group_size: number | null;
+  max_group_size: number | null;
+  status: 'draft' | 'published';
+  created_at: string;
+  updated_at: string;
+}
+
+export const EXPERIENCE_TYPE_LABELS: Record<ExperienceType, string> = {
+  yoga_retreat:  'Yoga Retreat',
+  upcoming_trip: 'Upcoming Trip',
+  student_trip:  'Student Trip',
+};
+
+export const EXPERIENCE_TYPE_COLORS: Record<ExperienceType, string> = {
+  yoga_retreat:  '#10B981',
+  upcoming_trip: '#60A5FA',
+  student_trip:  '#A78BFA',
+};
+
 // ─── Parse helpers (DB stores arrays as JSON strings) ────────────────────────
 
 export function parseJsonField<T>(value: string | null | undefined, fallback: T): T {

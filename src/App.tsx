@@ -30,6 +30,7 @@ import CouponsPage from '@/pages/coupons/CouponsPage';
 import CustomToursPage from '@/pages/leads/CustomToursPage';
 import ReportsPage from '@/pages/reports/ReportsPage';
 import EmailTemplatesPage from '@/pages/email/EmailTemplatesPage';
+import ExperiencesManagerPage from '@/pages/experiences/ExperiencesManagerPage';
 
 // ── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -103,6 +104,7 @@ export default function App() {
           <Route path="custom-tours" element={<CustomToursPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="email-templates" element={<EmailTemplatesPage />} />
+          <Route path="experiences" element={<ExperiencesManagerPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
