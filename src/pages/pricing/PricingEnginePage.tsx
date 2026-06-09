@@ -57,7 +57,7 @@ export default function PricingEnginePage() {
     setLoadingBase(true); setError(null);
     const [{ data: toursData }, { data: seasonsData }] = await Promise.all([
       supabase.from('tours').select('id, title, status').eq('status', 'published').order('title'),
-      supabase.from('seasons').select('*').order('start_date'),
+      supabase.from('btm_seasons').select('*').order('start_date'),
     ]);
     const t = (toursData ?? []) as Tour[];
     const s = (seasonsData ?? []) as Season[];
@@ -73,7 +73,7 @@ export default function PricingEnginePage() {
     if (!tourId || !seasonId) return;
     setLoadingMatrix(true);
     const { data } = await supabase
-      .from('pricing_rules')
+      .from('btm_pricing_rules')
       .select('*')
       .eq('tour_id', tourId)
       .eq('season_id', seasonId);
@@ -118,7 +118,7 @@ export default function PricingEnginePage() {
       }
     }
     if (upserts.length === 0) { toast.error('Enter at least one price'); setSavingMatrix(false); return; }
-    const { error: e } = await supabase.from('pricing_rules').upsert(upserts, { onConflict: 'tour_id,season_id,group_size_min,group_size_max,accommodation_tier' });
+    const { error: e } = await supabase.from('btm_pricing_rules').upsert(upserts, { onConflict: 'tour_id,season_id,group_size_min,group_size_max,accommodation_tier' });
     setSavingMatrix(false);
     if (e) { toast.error(e.message); return; }
     toast.success(`${upserts.length} pricing rules saved`);
@@ -129,7 +129,7 @@ export default function PricingEnginePage() {
     const k = cellKey(min, max, tier);
     const id = matrix[k]?.id;
     if (id) {
-      const { error: e } = await supabase.from('pricing_rules').delete().eq('id', id);
+      const { error: e } = await supabase.from('btm_pricing_rules').delete().eq('id', id);
       if (e) { toast.error(e.message); return; }
     }
     setMatrix(prev => { const next = { ...prev }; delete next[k]; return next; });
@@ -149,13 +149,13 @@ export default function PricingEnginePage() {
     setSavingSeason(true);
     const payload = { name: seasonForm.name.trim(), color: seasonForm.color, start_date: seasonForm.start_date, end_date: seasonForm.end_date, multiplier: Number(seasonForm.multiplier), description: seasonForm.description.trim() || null, is_active: seasonForm.is_active };
     if (editingSeason) {
-      const { data, error: e } = await supabase.from('seasons').update(payload).eq('id', editingSeason.id).select().single();
+      const { data, error: e } = await supabase.from('btm_seasons').update(payload).eq('id', editingSeason.id).select().single();
       setSavingSeason(false);
       if (e) { toast.error(e.message); return; }
       setSeasons(p => p.map(x => x.id === editingSeason.id ? data as Season : x));
       toast.success('Season updated');
     } else {
-      const { data, error: e } = await supabase.from('seasons').insert(payload).select().single();
+      const { data, error: e } = await supabase.from('btm_seasons').insert(payload).select().single();
       setSavingSeason(false);
       if (e) { toast.error(e.message); return; }
       setSeasons(p => [...p, data as Season]);
@@ -165,7 +165,7 @@ export default function PricingEnginePage() {
   }
   async function deleteSeason(s: Season) {
     if (!confirm(`Delete "${s.name}"? All pricing rules for this season will be deleted.`)) return;
-    const { error: e } = await supabase.from('seasons').delete().eq('id', s.id);
+    const { error: e } = await supabase.from('btm_seasons').delete().eq('id', s.id);
     if (e) { toast.error(e.message); return; }
     setSeasons(p => p.filter(x => x.id !== s.id));
     if (selectedSeasonId === s.id) setSelectedSeasonId('');

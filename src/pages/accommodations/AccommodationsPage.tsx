@@ -40,7 +40,7 @@ export default function AccommodationsPage() {
 
   async function load() {
     setLoading(true); setError(null);
-    const { data, error: e } = await supabase.from('accommodations').select('*').order('type').order('name');
+    const { data, error: e } = await supabase.from('btm_accommodations').select('*').order('type').order('name');
     if (e) { setError(e.message); setLoading(false); return; }
     setItems((data ?? []) as Accommodation[]);
     setLoading(false);
@@ -82,13 +82,13 @@ export default function AccommodationsPage() {
       notes: form.notes.trim() || null, is_active: form.is_active, updated_at: new Date().toISOString(),
     };
     if (editing) {
-      const { data, error: e } = await supabase.from('accommodations').update(payload).eq('id', editing.id).select().single();
+      const { data, error: e } = await supabase.from('btm_accommodations').update(payload).eq('id', editing.id).select().single();
       setSaving(false);
       if (e) { toast.error(e.message); return; }
       setItems(p => p.map(x => x.id === editing.id ? data as Accommodation : x));
       toast.success('Accommodation updated');
     } else {
-      const { data, error: e } = await supabase.from('accommodations').insert(payload).select().single();
+      const { data, error: e } = await supabase.from('btm_accommodations').insert(payload).select().single();
       setSaving(false);
       if (e) { toast.error(e.message); return; }
       setItems(p => [...p, data as Accommodation]);
@@ -99,7 +99,7 @@ export default function AccommodationsPage() {
 
   async function del(a: Accommodation) {
     if (!confirm(`Delete "${a.name}"?`)) return;
-    const { error: e } = await supabase.from('accommodations').delete().eq('id', a.id);
+    const { error: e } = await supabase.from('btm_accommodations').delete().eq('id', a.id);
     if (e) { toast.error(e.message); return; }
     setItems(p => p.filter(x => x.id !== a.id));
     toast.success('Removed');
