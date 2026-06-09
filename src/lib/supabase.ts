@@ -305,6 +305,140 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   bank_transfer: 'Bank Transfer',
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// TOURISM OPERATING SYSTEM TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface Vehicle {
+  id: string;
+  type: string;
+  make: string | null;
+  model: string | null;
+  year: number | null;
+  license_plate: string | null;
+  capacity: number;
+  color: string | null;
+  fuel_type: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Accommodation {
+  id: string;
+  type: string;
+  name: string;
+  city: string | null;
+  address: string | null;
+  stars: number | null;
+  tier: string;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  contracted_single_rate: number | null;
+  contracted_double_rate: number | null;
+  contracted_triple_rate: number | null;
+  capacity: number | null;
+  amenities: string[];
+  photo_url: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  type: string | null;
+  city: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  service_description: string | null;
+  contracted_rate: number | null;
+  currency: string;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Season {
+  id: string;
+  name: string;
+  color: string;
+  start_date: string;
+  end_date: string;
+  multiplier: number;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface PricingRule {
+  id: string;
+  tour_id: string;
+  season_id: string;
+  group_size_min: number;
+  group_size_max: number;
+  accommodation_tier: string;
+  price_per_person: number;
+  cost_per_person: number | null;
+  created_at: string;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string | null;
+  type: string;
+  value: number;
+  min_booking_value: number | null;
+  max_uses: number | null;
+  used_count: number;
+  valid_from: string | null;
+  valid_until: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CustomTourRequest {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  group_size: number;
+  preferred_start_date: string | null;
+  duration_days: number | null;
+  tour_id: string | null;
+  tour_name: string | null;
+  budget_per_person: number | null;
+  special_requirements: string | null;
+  source: string;
+  status: string;
+  assigned_to: string | null;
+  follow_up_date: string | null;
+  quoted_price: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  trigger: string;
+  subject: string;
+  body_html: string;
+  variables: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // ─── Parse helpers (DB stores arrays as JSON strings) ────────────────────────
 
 export function parseJsonField<T>(value: string | null | undefined, fallback: T): T {

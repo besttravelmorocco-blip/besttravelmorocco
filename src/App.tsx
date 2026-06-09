@@ -21,6 +21,15 @@ import BookingDetail from '@/pages/bookings/BookingDetail';
 import StaffPage from '@/pages/staff/StaffPage';
 import HomepageBuilderPage from '@/pages/website/HomepageBuilderPage';
 import NavigationEditorPage from '@/pages/website/NavigationEditorPage';
+import CustomersPage from '@/pages/customers/CustomersPage';
+import VehiclesPage from '@/pages/operations/VehiclesPage';
+import AccommodationsPage from '@/pages/accommodations/AccommodationsPage';
+import SuppliersPage from '@/pages/suppliers/SuppliersPage';
+import PricingEnginePage from '@/pages/pricing/PricingEnginePage';
+import CouponsPage from '@/pages/coupons/CouponsPage';
+import CustomToursPage from '@/pages/leads/CustomToursPage';
+import ReportsPage from '@/pages/reports/ReportsPage';
+import EmailTemplatesPage from '@/pages/email/EmailTemplatesPage';
 
 // ── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -85,6 +94,15 @@ export default function App() {
           <Route path="staff" element={<StaffPage />} />
           <Route path="homepage-builder" element={<HomepageBuilderPage />} />
           <Route path="navigation" element={<NavigationEditorPage />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="vehicles" element={<VehiclesPage />} />
+          <Route path="accommodations" element={<AccommodationsPage />} />
+          <Route path="suppliers" element={<SuppliersPage />} />
+          <Route path="pricing" element={<PricingEnginePage />} />
+          <Route path="coupons" element={<CouponsPage />} />
+          <Route path="custom-tours" element={<CustomToursPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="email-templates" element={<EmailTemplatesPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

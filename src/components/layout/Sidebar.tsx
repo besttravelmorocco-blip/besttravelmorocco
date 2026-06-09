@@ -1,47 +1,63 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
-  LayoutDashboard, Map, Globe, FileText,
-  HelpCircle, Settings, ChevronDown, ChevronRight,
-  Star, Image, Users, Mail, ExternalLink, Wrench,
-  CalendarDays, Navigation, type LucideIcon,
+  LayoutDashboard, Map, Globe, FileText, HelpCircle, Settings,
+  ChevronDown, ChevronRight, Star, Image, Users, Mail,
+  ExternalLink, Wrench, CalendarDays, Navigation, Car,
+  Building2, ShoppingBag, TrendingUp, Tag, Compass, BarChart3,
+  type LucideIcon,
 } from 'lucide-react';
 
 const CITY_GROUPS = [
   { city: 'Marrakech', path: 'marrakech' },
-  { city: 'Fes', path: 'fes' },
+  { city: 'Fes',       path: 'fes' },
   { city: 'Casablanca', path: 'casablanca' },
-  { city: 'Tangier', path: 'tangier' },
-  { city: 'Rabat', path: 'rabat' },
-  { city: 'Agadir', path: 'agadir' },
+  { city: 'Tangier',   path: 'tangier' },
+  { city: 'Rabat',     path: 'rabat' },
+  { city: 'Agadir',    path: 'agadir' },
 ];
 
-const NAV: { label: string; icon: LucideIcon; to: string }[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, to: '/' },
+type NavDef = { label: string; icon: LucideIcon; to: string };
+
+const SALES: NavDef[] = [
+  { label: 'Bookings',      icon: CalendarDays, to: '/bookings' },
+  { label: 'Custom Tours',  icon: Compass,      to: '/custom-tours' },
+  { label: 'Customers',     icon: Users,        to: '/customers' },
+  { label: 'Inquiries',     icon: Mail,         to: '/inquiries' },
 ];
 
-const CONTENT: { label: string; icon: LucideIcon; to: string }[] = [
-  { label: 'Tours', icon: Map, to: '/tours' },
-  { label: 'Destinations', icon: Globe, to: '/destinations' },
-  { label: 'Blog', icon: FileText, to: '/blog' },
-  { label: 'Testimonials', icon: Star, to: '/testimonials' },
-  { label: 'FAQs', icon: HelpCircle, to: '/faqs' },
-  { label: 'Media', icon: Image, to: '/media' },
+const CONTENT: NavDef[] = [
+  { label: 'Destinations', icon: Globe,     to: '/destinations' },
+  { label: 'Blog',         icon: FileText,  to: '/blog' },
+  { label: 'Testimonials', icon: Star,      to: '/testimonials' },
+  { label: 'FAQs',         icon: HelpCircle, to: '/faqs' },
+  { label: 'Media',        icon: Image,     to: '/media' },
 ];
 
-const WEBSITE: { label: string; icon: LucideIcon; to: string }[] = [
+const WEBSITE: NavDef[] = [
   { label: 'Homepage Builder', icon: LayoutDashboard, to: '/homepage-builder' },
   { label: 'Navigation',       icon: Navigation,      to: '/navigation' },
 ];
 
-const BUSINESS: { label: string; icon: LucideIcon; to: string }[] = [
-  { label: 'Bookings', icon: CalendarDays, to: '/bookings' },
-  { label: 'Staff & Drivers', icon: Users, to: '/staff' },
-  { label: 'Inquiries', icon: Mail, to: '/inquiries' },
+const OPERATIONS: NavDef[] = [
+  { label: 'Staff & Drivers', icon: Users,      to: '/staff' },
+  { label: 'Vehicle Fleet',   icon: Car,        to: '/vehicles' },
+  { label: 'Accommodations',  icon: Building2,  to: '/accommodations' },
+  { label: 'Suppliers',       icon: ShoppingBag, to: '/suppliers' },
 ];
 
-const SYSTEM: { label: string; icon: LucideIcon; to: string }[] = [
-  { label: 'Settings', icon: Settings, to: '/settings' },
+const PRICING: NavDef[] = [
+  { label: 'Pricing Engine', icon: TrendingUp, to: '/pricing' },
+  { label: 'Coupons',        icon: Tag,        to: '/coupons' },
+];
+
+const REPORTS: NavDef[] = [
+  { label: 'Reports',         icon: BarChart3,  to: '/reports' },
+  { label: 'Email Templates', icon: Mail,       to: '/email-templates' },
+];
+
+const SYSTEM: NavDef[] = [
+  { label: 'Settings',         icon: Settings, to: '/settings' },
   { label: 'Setup & Diagnostics', icon: Wrench, to: '/setup' },
 ];
 
@@ -58,6 +74,12 @@ function NavItem({ to, icon: Icon, label }: { to: string; icon: LucideIcon; labe
   );
 }
 
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div className="sidebar-section-label">{label}</div>
+  );
+}
+
 export default function Sidebar() {
   const location = useLocation();
   const toursOpen = location.pathname.startsWith('/tours');
@@ -68,13 +90,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="flex items-center gap-2.5">
-          <div
-            style={{
-              width: 32, height: 32, borderRadius: 6,
-              background: 'linear-gradient(135deg, #C9A96E, #A07840)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
+          <div style={{ width: 32, height: 32, borderRadius: 6, background: 'linear-gradient(135deg, #C9A96E, #A07840)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ color: '#1A0F0A', fontWeight: 800, fontSize: 14, fontFamily: 'Georgia' }}>B</span>
           </div>
           <div>
@@ -87,84 +103,75 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="sidebar-nav">
         {/* Overview */}
-        {NAV.map(item => <NavItem key={item.to} {...item} />)}
+        <NavItem to="/" icon={LayoutDashboard} label="Dashboard" />
 
-        {/* Content */}
-        <div className="sidebar-section-label">Content</div>
-        {CONTENT.map(item => {
-          if (item.to !== '/tours') return <NavItem key={item.to} {...item} />;
+        {/* Sales & Bookings */}
+        <SectionLabel label="Sales & Bookings" />
+        {SALES.map(item => <NavItem key={item.to} {...item} />)}
 
-          return (
-            <div key={item.to}>
-              <NavLink
-                to="/tours"
-                className={({ isActive }) => `sidebar-item${isActive || toursOpen ? ' active' : ''}`}
-              >
-                <Map size={16} />
-                <span style={{ flex: 1 }}>Tours</span>
-                {toursOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-              </NavLink>
+        {/* Tours (with expand) */}
+        <SectionLabel label="Content" />
+        <div>
+          <NavLink
+            to="/tours"
+            className={({ isActive }) => `sidebar-item${isActive || toursOpen ? ' active' : ''}`}
+          >
+            <Map size={16} />
+            <span style={{ flex: 1 }}>Tours</span>
+            {toursOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+          </NavLink>
 
-              {toursOpen && (
-                <div style={{ marginTop: 2 }}>
-                  <NavLink to="/tours" end className={({ isActive }) => `sidebar-sub-item${isActive ? ' active' : ''}`}>
-                    All Tours
-                  </NavLink>
-                  <NavLink to="/tours/new" className={({ isActive }) => `sidebar-sub-item${isActive ? ' active' : ''}`}>
-                    + Add New Tour
-                  </NavLink>
-
-                  {/* City groups */}
-                  <div style={{ padding: '6px 10px 2px 36px', fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.2)' }}>
-                    By Departure
+          {toursOpen && (
+            <div style={{ marginTop: 2 }}>
+              <NavLink to="/tours" end className={({ isActive }) => `sidebar-sub-item${isActive ? ' active' : ''}`}>All Tours</NavLink>
+              <NavLink to="/tours/new" className={({ isActive }) => `sidebar-sub-item${isActive ? ' active' : ''}`}>+ Add New Tour</NavLink>
+              <div style={{ padding: '6px 10px 2px 36px', fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.2)' }}>
+                By Departure
+              </div>
+              {CITY_GROUPS.map(({ city, path }) => (
+                <div key={city}>
+                  <div
+                    className={`city-group-header${cityExpanded === city ? ' active' : ''}`}
+                    style={{ paddingLeft: 36, fontSize: 12 }}
+                    onClick={() => setCityExpanded(cityExpanded === city ? null : city)}
+                  >
+                    <span style={{ flex: 1 }}>{city}</span>
+                    {cityExpanded === city ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                   </div>
-                  {CITY_GROUPS.map(({ city, path }) => (
-                    <div key={city}>
-                      <div
-                        className={`city-group-header${cityExpanded === city ? ' active' : ''}`}
-                        style={{ paddingLeft: 36, fontSize: 12 }}
-                        onClick={() => setCityExpanded(cityExpanded === city ? null : city)}
-                      >
-                        <span style={{ flex: 1 }}>{city}</span>
-                        {cityExpanded === city ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
-                      </div>
-                      {cityExpanded === city && (
-                        <NavLink
-                          to={`/tours?city=${path}`}
-                          className="sidebar-sub-item"
-                          style={{ paddingLeft: 52 }}
-                        >
-                          View {city} Tours
-                        </NavLink>
-                      )}
-                    </div>
-                  ))}
+                  {cityExpanded === city && (
+                    <NavLink to={`/tours?city=${path}`} className="sidebar-sub-item" style={{ paddingLeft: 52 }}>
+                      View {city} Tours
+                    </NavLink>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          );
-        })}
+          )}
+        </div>
+        {CONTENT.map(item => <NavItem key={item.to} {...item} />)}
 
         {/* Website */}
-        <div className="sidebar-section-label">Website</div>
+        <SectionLabel label="Website" />
         {WEBSITE.map(item => <NavItem key={item.to} {...item} />)}
 
-        {/* Business */}
-        <div className="sidebar-section-label">Business</div>
-        {BUSINESS.map(item => <NavItem key={item.to} {...item} />)}
+        {/* Operations */}
+        <SectionLabel label="Operations" />
+        {OPERATIONS.map(item => <NavItem key={item.to} {...item} />)}
+
+        {/* Pricing */}
+        <SectionLabel label="Pricing" />
+        {PRICING.map(item => <NavItem key={item.to} {...item} />)}
+
+        {/* Reports & Automation */}
+        <SectionLabel label="Reports & Automation" />
+        {REPORTS.map(item => <NavItem key={item.to} {...item} />)}
 
         {/* System */}
-        <div className="sidebar-section-label">System</div>
+        <SectionLabel label="System" />
         {SYSTEM.map(item => <NavItem key={item.to} {...item} />)}
 
         {/* View Site */}
-        <a
-          href="https://www.besttravelmorocco.com"
-          target="_blank"
-          rel="noopener"
-          className="sidebar-item"
-          style={{ marginTop: 8 }}
-        >
+        <a href="https://www.besttravelmorocco.com" target="_blank" rel="noopener" className="sidebar-item" style={{ marginTop: 8 }}>
           <ExternalLink size={16} />
           <span>View Live Site</span>
         </a>
