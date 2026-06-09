@@ -16,9 +16,9 @@ const GROUP_BANDS = [
   { label: '10–13 pax', min: 10, max: 13 },
   { label: '14–18 pax', min: 14, max: 18 },
 ];
-const TIERS = ['standard', 'superior', 'luxury'] as const;
-const TIER_LABELS = { standard: 'Standard', superior: 'Superior', luxury: 'Luxury' };
-const TIER_COLORS = { standard: '#60A5FA', superior: '#FBBF24', luxury: '#C9A96E' };
+const TIERS = ['boutique', 'luxury', 'signature'] as const;
+const TIER_LABELS = { boutique: 'Boutique', luxury: 'Luxury', signature: 'Signature' };
+const TIER_COLORS = { boutique: '#10B981', luxury: '#C9A96E', signature: '#F59E0B' };
 
 type CellKey = `${number}-${number}-${string}`;
 type Matrix = Record<CellKey, { price: string; cost: string; id?: string }>;

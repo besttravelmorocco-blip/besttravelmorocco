@@ -331,20 +331,37 @@ export interface Vehicle {
   updated_at: string;
 }
 
+export type AccomCategory = 'standard' | 'luxury';
+export type PricingTier   = 'boutique' | 'luxury' | 'signature';
+
 export interface Accommodation {
   id: string;
+  destination: string;
+  category: AccomCategory;
   type: string;
   name: string;
   city: string | null;
   address: string | null;
   stars: number | null;
-  tier: string;
+  tier: string;                       // legacy — kept for backward compat
+  description: string | null;
+  images: string[];
+  website: string | null;
+  contact_person: string | null;
   contact_name: string | null;
   contact_phone: string | null;
   contact_email: string | null;
+  google_maps_link: string | null;
+  low_season_rate: number | null;
+  mid_season_rate: number | null;
   contracted_single_rate: number | null;
+  peak_season_rate: number | null;
   contracted_double_rate: number | null;
   contracted_triple_rate: number | null;
+  double_room_rate: number | null;
+  family_room_rate: number | null;
+  extra_bed_rate: number | null;
+  child_policy: string | null;
   capacity: number | null;
   amenities: string[];
   photo_url: string | null;
@@ -352,6 +369,18 @@ export interface Accommodation {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface TourAccommodationAssignment {
+  id: string;
+  tour_id: string;
+  destination: string;
+  category: AccomCategory;
+  accommodation_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  accommodation?: Accommodation;
 }
 
 export interface Supplier {
