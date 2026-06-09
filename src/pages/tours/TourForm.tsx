@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import type { Tour, TourStatus, ItineraryDay } from '@/lib/supabase';
-import { parseTourItinerary, parseTourIncluded, parseTourHighlights } from '@/lib/supabase';
+import { parseTourItinerary, parseTourIncluded, parseTourHighlights, parseTourNotIncluded } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Save, Globe, Eye, Plus, Trash2,
@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 const CITIES = ['Marrakech', 'Fes', 'Casablanca', 'Tangier', 'Agadir', 'Errachidia', 'Ouarzazate', 'Essaouira', 'Rabat'];
-const TABS = ['Basics', 'Itinerary', 'Inclusions', 'SEO'] as const;
+const TABS = ['Basics', 'Itinerary', 'Inclusions', 'Not Included', 'SEO'] as const;
 type Tab = typeof TABS[number];
 
 interface FormState {
@@ -26,6 +26,7 @@ interface FormState {
   featured: boolean;
   itinerary: ItineraryDay[];
   included: string[];
+  not_included: string[];
   highlights: string[];
   seo_title: string;
   seo_description: string;
@@ -36,7 +37,7 @@ function emptyForm(): FormState {
     title: '', subtitle: '', description: '', days: 3,
     from_city: 'Marrakech', to_city: 'Marrakech',
     price: 'From €', image: '', status: 'draft', featured: false,
-    itinerary: [], included: [], highlights: [],
+    itinerary: [], included: [], not_included: [], highlights: [],
     seo_title: '', seo_description: '',
   };
 }
@@ -53,8 +54,9 @@ export default function TourForm() {
   const [error, setError] = useState<string | null>(null);
 
   // Temp input values for array fields
-  const [newIncluded, setNewIncluded] = useState('');
-  const [newHighlight, setNewHighlight] = useState('');
+  const [newIncluded, setNewIncluded]       = useState('');
+  const [newNotIncluded, setNewNotIncluded] = useState('');
+  const [newHighlight, setNewHighlight]     = useState('');
 
   useEffect(() => {
     if (isNew) return;
@@ -67,10 +69,12 @@ export default function TourForm() {
         title: t.title, subtitle: t.subtitle, description: t.description,
         days: t.days, from_city: t.from_city, to_city: t.to_city,
         price: t.price, image: t.image, status: t.status, featured: t.featured,
-        itinerary: parseTourItinerary(t),
-        included: parseTourIncluded(t),
-        highlights: parseTourHighlights(t),
-        seo_title: '', seo_description: '',
+        itinerary:    parseTourItinerary(t),
+        included:     parseTourIncluded(t),
+        not_included: parseTourNotIncluded(t),
+        highlights:   parseTourHighlights(t),
+        seo_title:    t.seo_title    ?? '',
+        seo_description: t.seo_description ?? '',
       });
       setLoading(false);
     }
@@ -108,10 +112,13 @@ export default function TourForm() {
       image: form.image,
       status,
       featured: form.featured,
-      itinerary: JSON.stringify(form.itinerary),
-      included: JSON.stringify(form.included),
-      highlights: JSON.stringify(form.highlights),
-      updated_at: new Date().toISOString(),
+      itinerary:    JSON.stringify(form.itinerary),
+      included:     JSON.stringify(form.included),
+      not_included: JSON.stringify(form.not_included),
+      highlights:   JSON.stringify(form.highlights),
+      seo_title:    form.seo_title,
+      seo_description: form.seo_description,
+      updated_at:   new Date().toISOString(),
     };
 
     try {
@@ -288,6 +295,35 @@ export default function TourForm() {
             </div>
           )}
 
+          {tab === 'Not Included' && (
+            <div className="card">
+              <h3 className="card-title" style={{ marginBottom: 12 }}>Not Included</h3>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <input
+                  className="form-input" style={{ flex: 1 }} value={newNotIncluded}
+                  onChange={e => setNewNotIncluded(e.target.value)}
+                  placeholder="e.g. Lunches (allow €8-15 per day)"
+                  onKeyDown={e => { if (e.key === 'Enter' && newNotIncluded.trim()) { set('not_included', [...form.not_included, newNotIncluded.trim()]); setNewNotIncluded(''); e.preventDefault(); } }}
+                />
+                <button className="btn btn-primary" onClick={() => { if (newNotIncluded.trim()) { set('not_included', [...form.not_included, newNotIncluded.trim()]); setNewNotIncluded(''); } }}>
+                  <Plus size={14} />
+                </button>
+              </div>
+              {form.not_included.length === 0 ? (
+                <p style={{ fontSize: 13, color: 'var(--text-3)', padding: '8px 0' }}>No exclusions added yet.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {form.not_included.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-2)', borderRadius: 6, padding: '6px 10px' }}>
+                      <span style={{ flex: 1, fontSize: 13, color: 'var(--text-1)' }}>✗ {item}</span>
+                      <button onClick={() => set('not_included', form.not_included.filter((_, idx) => idx !== i))} className="btn-icon btn-icon-danger" style={{ padding: 2 }}><Trash2 size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {tab === 'SEO' && (
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="form-group">
@@ -353,6 +389,7 @@ export default function TourForm() {
                 ['Highlights', `${form.highlights.length}`],
                 ['Itinerary days', `${form.itinerary.length}`],
                 ['Inclusions', `${form.included.length}`],
+                ['Exclusions', `${form.not_included.length}`],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span className="text-3">{k}</span>

@@ -32,11 +32,61 @@ export interface Tour {
   itinerary: string;        // JSON string of ItineraryDay[]
   included: string;         // JSON string of string[]
   highlights: string;       // JSON string of string[]
+  not_included: string;     // JSON string of string[]
+  seo_title: string;
+  seo_description: string;
+  category: string;
+  popular: boolean;
+  departure_city: string | null;
   status: TourStatus;
   featured: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
+}
+
+// faqs table
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  page: string;
+  sort_order: number;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// homepage_sections table
+export interface HomepageSection {
+  id: string;
+  section_type: string;
+  label: string;
+  sort_order: number;
+  is_visible: boolean;
+  config: Record<string, unknown>;
+  updated_at: string;
+}
+
+// nav_menus table
+export interface NavMenu {
+  id: string;
+  handle: string;
+  label: string | null;
+}
+
+// nav_items table
+export interface NavItem {
+  id: string;
+  menu_id: string;
+  parent_id: string | null;
+  label: string;
+  href: string | null;
+  tour_id: string | null;
+  sort_order: number;
+  is_visible: boolean;
+  opens_new_tab: boolean;
 }
 
 // destinations table
@@ -272,4 +322,8 @@ export function parseTourIncluded(tour: Tour): string[] {
 
 export function parseTourHighlights(tour: Tour): string[] {
   return parseJsonField<string[]>(tour.highlights, []);
+}
+
+export function parseTourNotIncluded(tour: Tour): string[] {
+  return parseJsonField<string[]>(tour.not_included, []);
 }

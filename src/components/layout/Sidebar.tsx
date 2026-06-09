@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Map, Globe, FileText,
   HelpCircle, Settings, ChevronDown, ChevronRight,
   Star, Image, Users, Mail, ExternalLink, Wrench,
-  CalendarDays, type LucideIcon,
+  CalendarDays, Navigation, type LucideIcon,
 } from 'lucide-react';
 
 const CITY_GROUPS = [
@@ -27,6 +27,11 @@ const CONTENT: { label: string; icon: LucideIcon; to: string }[] = [
   { label: 'Testimonials', icon: Star, to: '/testimonials' },
   { label: 'FAQs', icon: HelpCircle, to: '/faqs' },
   { label: 'Media', icon: Image, to: '/media' },
+];
+
+const WEBSITE: { label: string; icon: LucideIcon; to: string }[] = [
+  { label: 'Homepage Builder', icon: LayoutDashboard, to: '/homepage-builder' },
+  { label: 'Navigation',       icon: Navigation,      to: '/navigation' },
 ];
 
 const BUSINESS: { label: string; icon: LucideIcon; to: string }[] = [
@@ -139,6 +144,10 @@ export default function Sidebar() {
             </div>
           );
         })}
+
+        {/* Website */}
+        <div className="sidebar-section-label">Website</div>
+        {WEBSITE.map(item => <NavItem key={item.to} {...item} />)}
 
         {/* Business */}
         <div className="sidebar-section-label">Business</div>

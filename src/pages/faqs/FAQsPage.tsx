@@ -1,32 +1,110 @@
-import { useState } from 'react';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, GripVertical, Search, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { FAQ } from '@/lib/supabase';
 import { toast } from 'sonner';
+import {
+  Plus, Edit2, Trash2, ChevronDown, ChevronRight, Search,
+  Loader2, Save, X, GripVertical, Eye, EyeOff,
+} from 'lucide-react';
 
-// FAQs are stored in the frontend codebase (no `faqs` table exists in the DB).
-// Edits here are local-session only. To make them permanent, update src/components/FAQSchema.tsx
-// in the main website project.
-
-interface FAQ { id: string; question: string; answer: string; category: string; }
-
-const INITIAL: FAQ[] = [
-  { id: '1', question: 'Do I need a visa to visit Morocco?', answer: 'Most nationalities (US, UK, EU, Canada, Australia, NZ) do not need a visa for stays under 90 days. Check with your embassy for current requirements.', category: 'Visas & Entry' },
-  { id: '2', question: 'What is the best time to visit Morocco?', answer: 'Spring (March–May) and Autumn (September–November) offer the best weather. Summers are very hot inland; winters are mild in cities but cold in the desert at night.', category: 'Planning' },
-  { id: '3', question: 'Is Morocco safe for tourists?', answer: 'Morocco is generally very safe. Millions of tourists visit each year without issues. Our licensed guides and vetted accommodations ensure a secure experience.', category: 'Safety' },
-  { id: '4', question: 'How do I book a tour?', answer: 'Contact us via WhatsApp (+212 677 365 421), email, or the inquiry form. We will create a personalised proposal within 24 hours.', category: 'Booking' },
-  { id: '5', question: 'What payment methods do you accept?', answer: 'We accept Wise (no fees), PayPal, bank transfer, and credit cards. A deposit confirms your booking; the balance is due before departure.', category: 'Booking' },
-  { id: '6', question: 'Can you create a custom itinerary?', answer: 'Yes — custom trips are our speciality. Tell us your dates, group size, interests, and budget and we will design a unique Morocco experience for you.', category: 'Planning' },
-];
-
-const CATEGORIES = ['All', ...Array.from(new Set(INITIAL.map(f => f.category)))];
+const CATEGORIES = ['All', 'Visas & Entry', 'Planning', 'Safety', 'Booking', 'General'];
 
 export default function FAQsPage() {
-  const [faqs, setFaqs] = useState<FAQ[]>(INITIAL);
-  const [search, setSearch] = useState('');
+  const [faqs, setFaqs]         = useState<FAQ[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState('');
   const [category, setCategory] = useState('All');
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [editing, setEditing] = useState<FAQ | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ question: '', answer: '', category: 'Planning' });
+  const [editing, setEditing]   = useState<FAQ | null>(null);
+  const [saving, setSaving]     = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [form, setForm] = useState({ question: '', answer: '', category: 'Planning', page: 'all' });
+
+  async function load() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('faqs')
+      .select('*')
+      .order('sort_order')
+      .order('created_at');
+    if (error) { toast.error(error.message); setLoading(false); return; }
+    setFaqs((data ?? []) as FAQ[]);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  function set<K extends keyof typeof form>(k: K, v: string) {
+    setForm(p => ({ ...p, [k]: v }));
+  }
+
+  function openNew() {
+    setForm({ question: '', answer: '', category: 'Planning', page: 'all' });
+    setEditing(null);
+    setShowForm(true);
+  }
+
+  function openEdit(f: FAQ) {
+    setForm({ question: f.question, answer: f.answer, category: f.category, page: f.page });
+    setEditing(f);
+    setShowForm(true);
+  }
+
+  async function save() {
+    if (!form.question.trim()) { toast.error('Question is required'); return; }
+    if (!form.answer.trim())   { toast.error('Answer is required'); return; }
+    setSaving(true);
+    const payload = {
+      question:   form.question.trim(),
+      answer:     form.answer.trim(),
+      category:   form.category,
+      page:       form.page,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = editing
+      ? await supabase.from('faqs').update(payload).eq('id', editing.id)
+      : await supabase.from('faqs').insert({
+          ...payload,
+          sort_order: faqs.length + 1,
+          is_visible: true,
+          created_at: new Date().toISOString(),
+        });
+    if (error) { toast.error(error.message); setSaving(false); return; }
+    toast.success(editing ? 'FAQ updated' : 'FAQ added');
+    setShowForm(false);
+    setSaving(false);
+    load();
+  }
+
+  async function del(id: string) {
+    if (!confirm('Delete this FAQ?')) return;
+    setDeleting(id);
+    const { error } = await supabase.from('faqs').delete().eq('id', id);
+    if (error) { toast.error(error.message); setDeleting(null); return; }
+    toast.success('Deleted');
+    setDeleting(null);
+    setFaqs(p => p.filter(f => f.id !== id));
+  }
+
+  async function toggleVisible(f: FAQ) {
+    const { error } = await supabase.from('faqs').update({ is_visible: !f.is_visible }).eq('id', f.id);
+    if (error) { toast.error(error.message); return; }
+    setFaqs(p => p.map(x => x.id === f.id ? { ...x, is_visible: !f.is_visible } : x));
+  }
+
+  async function move(f: FAQ, dir: 'up' | 'down') {
+    const sorted = [...faqs].sort((a, b) => a.sort_order - b.sort_order);
+    const idx = sorted.findIndex(x => x.id === f.id);
+    const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sorted.length) return;
+    const other = sorted[swapIdx];
+    await Promise.all([
+      supabase.from('faqs').update({ sort_order: other.sort_order }).eq('id', f.id),
+      supabase.from('faqs').update({ sort_order: f.sort_order }).eq('id', other.id),
+    ]);
+    load();
+  }
 
   const filtered = faqs.filter(f => {
     const q = search.toLowerCase();
@@ -34,99 +112,169 @@ export default function FAQsPage() {
       && (category === 'All' || f.category === category);
   });
 
-  function openNew() { setForm({ question: '', answer: '', category: 'Planning' }); setEditing(null); setShowForm(true); }
-  function openEdit(f: FAQ) { setForm({ question: f.question, answer: f.answer, category: f.category }); setEditing(f); setShowForm(true); }
-
-  function save() {
-    if (!form.question.trim() || !form.answer.trim()) { toast.error('Question and answer are required'); return; }
-    if (editing) {
-      setFaqs(p => p.map(f => f.id === editing.id ? { ...f, ...form } : f));
-      toast.success('FAQ updated (session only — update FAQSchema.tsx to persist)');
-    } else {
-      setFaqs(p => [...p, { id: Date.now().toString(), ...form }]);
-      toast.success('FAQ added (session only — update FAQSchema.tsx to persist)');
-    }
-    setShowForm(false);
-  }
-
-  function del(id: string) {
-    setFaqs(p => p.filter(f => f.id !== id));
-    toast.success('Removed (session only)');
-  }
-
   return (
-    <div className="page">
+    <div>
+      {/* Header */}
       <div className="page-header">
-        <div><h1 className="page-title">FAQs</h1><p className="page-subtitle">{faqs.length} questions</p></div>
-        <button onClick={openNew} className="btn btn-primary"><Plus size={15} /> Add FAQ</button>
-      </div>
-
-      {/* Note banner */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: 8, marginBottom: 16, fontSize: 12, color: 'var(--text-2)' }}>
-        <AlertCircle size={15} style={{ color: '#FBBF24', flexShrink: 0, marginTop: 1 }} />
-        FAQs are stored in the website codebase, not the database. Changes here are session-only previews. To make them permanent, update <code style={{ background: 'var(--bg-2)', padding: '1px 5px', borderRadius: 4 }}>src/components/FAQSchema.tsx</code> in the main website project.
-      </div>
-
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div className="search-input-wrap" style={{ flex: 1, minWidth: 200 }}>
-          <Search size={14} />
-          <input type="text" placeholder="Search FAQs…" value={search} onChange={e => setSearch(e.target.value)} className="form-input search-input" />
+        <div>
+          <h1 className="page-title">FAQs</h1>
+          <p className="page-subtitle">
+            {loading ? 'Loading…' : `${faqs.length} question${faqs.length !== 1 ? 's' : ''} — changes save to the live site`}
+          </p>
         </div>
-        {CATEGORIES.map(c => (
-          <button key={c} onClick={() => setCategory(c)} className={`btn ${category === c ? 'btn-primary' : 'btn-outline'}`} style={{ fontSize: 12 }}>{c}</button>
-        ))}
+        <button className="btn btn-primary" onClick={openNew}>
+          <Plus size={14} /> Add FAQ
+        </button>
       </div>
 
-      {/* Form modal */}
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 180 }}>
+          <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)' }} />
+          <input
+            placeholder="Search FAQs…" value={search} onChange={e => setSearch(e.target.value)}
+            style={{ width: '100%', paddingLeft: 30, paddingRight: 10, paddingTop: 8, paddingBottom: 8, background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: 13 }}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {CATEGORIES.map(c => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`btn ${category === c ? 'btn-primary' : 'btn-outline'}`}
+              style={{ fontSize: 12, padding: '6px 12px' }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* FAQ list */}
+      {loading ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '64px 0', gap: 10, color: 'var(--text-3)' }}>
+          <Loader2 size={18} className="animate-spin" />
+          <span style={{ fontSize: 13 }}>Loading FAQs…</span>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '48px 0' }}>
+          <p style={{ color: 'var(--text-3)', fontSize: 14, marginBottom: 12 }}>
+            {search || category !== 'All' ? 'No FAQs match your filter' : 'No FAQs yet'}
+          </p>
+          {!search && category === 'All' && (
+            <button className="btn btn-primary" onClick={openNew}><Plus size={14} /> Add First FAQ</button>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {filtered.map((f, idx) => (
+            <div
+              key={f.id}
+              className="card"
+              style={{ opacity: f.is_visible ? 1 : 0.5 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                {/* Reorder grip */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 14, flexShrink: 0 }}>
+                  <button
+                    onClick={() => move(f, 'up')} disabled={idx === 0}
+                    style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: 'var(--text-3)', padding: 2, opacity: idx === 0 ? 0.3 : 1 }}
+                    title="Move up"
+                  >▲</button>
+                  <button
+                    onClick={() => move(f, 'down')} disabled={idx === filtered.length - 1}
+                    style={{ background: 'none', border: 'none', cursor: idx === filtered.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--text-3)', padding: 2, opacity: idx === filtered.length - 1 ? 0.3 : 1 }}
+                    title="Move down"
+                  >▼</button>
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '10px 0' }}
+                    onClick={() => setExpanded(expanded === f.id ? null : f.id)}
+                  >
+                    {expanded === f.id ? <ChevronDown size={15} style={{ color: 'var(--sand)', flexShrink: 0 }} /> : <ChevronRight size={15} style={{ color: 'var(--text-3)', flexShrink: 0 }} />}
+                    <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{f.question}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-3)', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 8px', flexShrink: 0 }}>
+                      {f.category}
+                    </span>
+                  </div>
+                  {expanded === f.id && (
+                    <div style={{ paddingLeft: 25, paddingBottom: 12, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                      {f.answer}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 4, flexShrink: 0, paddingTop: 8 }}>
+                  <button onClick={() => toggleVisible(f)} className="btn btn-ghost btn-icon" title={f.is_visible ? 'Hide' : 'Show'}>
+                    {f.is_visible ? <Eye size={14} /> : <EyeOff size={14} style={{ color: 'var(--text-3)' }} />}
+                  </button>
+                  <button onClick={() => openEdit(f)} className="btn btn-ghost btn-icon" title="Edit">
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    onClick={() => del(f.id)}
+                    disabled={deleting === f.id}
+                    className="btn btn-ghost btn-icon"
+                    style={{ color: '#EF4444' }}
+                    title="Delete"
+                  >
+                    {deleting === f.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add/Edit Modal */}
       {showForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div className="card" style={{ width: '100%', maxWidth: 520 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 20 }}>{editing ? 'Edit FAQ' : 'New FAQ'}</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div className="form-group"><label className="form-label">Category</label>
-                <input className="form-input" value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} />
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
+          <div className="card" style={{ width: '100%', maxWidth: 560, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700 }}>{editing ? 'Edit FAQ' : 'Add FAQ'}</h3>
+              <button onClick={() => setShowForm(false)} className="btn btn-ghost btn-icon"><X size={16} /></button>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Question *</label>
+              <input className="form-input" value={form.question} onChange={e => set('question', e.target.value)} placeholder="e.g. Do I need a visa to visit Morocco?" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Answer *</label>
+              <textarea className="form-input" rows={5} value={form.answer} onChange={e => set('answer', e.target.value)} placeholder="Clear, helpful answer…" style={{ resize: 'vertical' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="form-group">
+                <label className="form-label">Category</label>
+                <select className="form-input" value={form.category} onChange={e => set('category', e.target.value)}>
+                  {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
+                </select>
               </div>
-              <div className="form-group"><label className="form-label">Question *</label>
-                <input className="form-input" value={form.question} onChange={e => setForm(p => ({ ...p, question: e.target.value }))} />
+              <div className="form-group">
+                <label className="form-label">Show On Page</label>
+                <select className="form-input" value={form.page} onChange={e => set('page', e.target.value)}>
+                  <option value="all">All pages</option>
+                  <option value="homepage">Homepage only</option>
+                  <option value="tours">Tours page</option>
+                  <option value="contact">Contact page</option>
+                </select>
               </div>
-              <div className="form-group"><label className="form-label">Answer *</label>
-                <textarea className="form-input" rows={4} value={form.answer} onChange={e => setForm(p => ({ ...p, answer: e.target.value }))} style={{ resize: 'vertical' }} />
-              </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => setShowForm(false)} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
-                <button onClick={save} className="btn btn-primary" style={{ flex: 2, justifyContent: 'center' }}>{editing ? 'Save Changes' : 'Add FAQ'}</button>
-              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowForm(false)} className="btn btn-outline">Cancel</button>
+              <button onClick={save} disabled={saving} className="btn btn-primary">
+                {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Save size={14} /> {editing ? 'Update FAQ' : 'Add FAQ'}</>}
+              </button>
             </div>
           </div>
         </div>
       )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {filtered.map(f => (
-          <div key={f.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer' }}
-              onClick={() => setExpanded(expanded === f.id ? null : f.id)}
-            >
-              <GripVertical size={14} style={{ color: 'var(--text-3)', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <span className="badge badge-default" style={{ marginBottom: 4, display: 'inline-block' }}>{f.category}</span>
-                <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)', lineHeight: 1.4 }}>{f.question}</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                <button onClick={e => { e.stopPropagation(); openEdit(f); }} className="btn-icon"><Edit2 size={13} /></button>
-                <button onClick={e => { e.stopPropagation(); del(f.id); }} className="btn-icon btn-icon-danger"><Trash2 size={13} /></button>
-                {expanded === f.id ? <ChevronDown size={16} style={{ color: 'var(--text-3)' }} /> : <ChevronRight size={16} style={{ color: 'var(--text-3)' }} />}
-              </div>
-            </div>
-            {expanded === f.id && (
-              <div style={{ padding: '0 16px 14px 42px', fontSize: 14, color: 'var(--text-2)', lineHeight: 1.65, borderTop: '1px solid var(--border)' }}>
-                <div style={{ paddingTop: 12 }}>{f.answer}</div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
