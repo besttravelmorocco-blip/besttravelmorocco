@@ -1,8 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { BlogPost, ContentStatus } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Search, Plus, Edit2, Trash2, Eye, Star, RefreshCw, AlertCircle, X, Loader2, Globe, FileText } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Eye, Star, RefreshCw, AlertCircle, X, Loader2, Globe, FileText, Upload } from 'lucide-react';
+
+const STORAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1`;
+const STORAGE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+async function uploadBlogImage(file: File): Promise<string> {
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+  const name = `blog_${Date.now()}.${ext}`;
+  const res = await fetch(`${STORAGE_URL}/object/images/${encodeURIComponent(name)}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${STORAGE_KEY}`,
+      apikey: STORAGE_KEY,
+      'Content-Type': file.type,
+      'x-upsert': 'true',
+    },
+    body: file,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return `${STORAGE_URL}/object/public/images/${encodeURIComponent(name)}`;
+}
 
 const CATEGORIES = ['Travel Guide', 'Experiences', 'Culture', 'Food & Drink', 'Tips', 'Destinations', 'News'];
 
@@ -24,8 +44,28 @@ export default function BlogPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [imgUploading, setImgUploading] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const imgInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image must be under 10 MB'); return; }
+    setImgUploading(true);
+    try {
+      const url = await uploadBlogImage(file);
+      set('image', url);
+      toast.success('Image uploaded');
+    } catch (err: unknown) {
+      toast.error(`Upload failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setImgUploading(false);
+      if (imgInputRef.current) imgInputRef.current.value = '';
+    }
+  }
 
   async function fetch() {
     setLoading(true); setError(null);
@@ -141,7 +181,25 @@ export default function BlogPage() {
               </div>
               <div className="form-group"><label className="form-label">Excerpt</label><textarea className="form-input" rows={2} value={form.excerpt} onChange={e => set('excerpt', e.target.value)} style={{ resize: 'vertical' }} /></div>
               <div className="form-group"><label className="form-label">Content (HTML or plain text)</label><textarea className="form-input" rows={6} value={form.content} onChange={e => set('content', e.target.value)} style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} /></div>
-              <div className="form-group"><label className="form-label">Image path</label><input className="form-input" value={form.image} onChange={e => set('image', e.target.value)} placeholder="/images/blog_post.jpg" /></div>
+              <div className="form-group">
+                <label className="form-label">Cover Image</label>
+                <input ref={imgInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                {form.image && (
+                  <div style={{ marginBottom: 8, borderRadius: 8, overflow: 'hidden', height: 120, background: 'var(--bg-2)', position: 'relative' }}>
+                    <img src={form.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3'; }} />
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" onClick={() => imgInputRef.current?.click()} disabled={imgUploading} className="btn btn-outline" style={{ fontSize: 12, gap: 6 }}>
+                    {imgUploading ? <><Loader2 size={13} className="spin" /> Uploading…</> : <><Upload size={13} /> Upload Image</>}
+                  </button>
+                  <input className="form-input" style={{ flex: 1, fontSize: 12 }} value={form.image} onChange={e => set('image', e.target.value)} placeholder="Or paste URL / path" />
+                  {form.image && (
+                    <button type="button" onClick={() => set('image', '')} className="btn-icon" title="Clear image"><X size={14} /></button>
+                  )}
+                </div>
+                {!form.image && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>Upload a JPG/PNG or paste a Supabase Storage URL</p>}
+              </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13 }}>
                 <input type="checkbox" checked={form.featured} onChange={e => set('featured', e.target.checked)} style={{ width: 16, height: 16 }} />
                 Featured post
