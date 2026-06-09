@@ -321,9 +321,9 @@ export default function HomepageBuilderPage() {
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{s.label}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{SECTION_DESCRIPTIONS[s.section_type] ?? s.section_type}</div>
                   {/* Config preview */}
-                  {s.config.heading && (
+                  {typeof s.config.heading === 'string' && s.config.heading && (
                     <div style={{ fontSize: 11, color: 'var(--sand)', marginTop: 4, fontStyle: 'italic' }}>
-                      "{s.config.heading as string}"
+                      "{s.config.heading}"
                     </div>
                   )}
                 </div>

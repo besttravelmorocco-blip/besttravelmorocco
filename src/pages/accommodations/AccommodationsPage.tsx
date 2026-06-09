@@ -653,7 +653,7 @@ export default function AccommodationsPage() {
 
   function exportCSV() {
     const header = ['destination', 'category', 'type', 'name', 'stars', 'contact_person', 'contact_phone', 'contact_email', 'low_season_rate', 'mid_season_rate', 'high_season_rate', 'peak_season_rate', 'website'];
-    const rows = items.map(a => header.map(k => (a as Record<string, unknown>)[k] ?? '').join(','));
+    const rows = items.map(a => header.map(k => (a as unknown as Record<string, unknown>)[k] ?? '').join(','));
     const csv = [header.join(','), ...rows].join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     const el = document.createElement('a');
