@@ -2,8 +2,8 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { Image, Upload, Search, Trash2, Copy, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const BASE = 'https://uxkfqxistjvtofskqtwy.supabase.co/storage/v1';
-const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4a2ZxeGlzdGp2dG9mc2txdHd5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTQ1MjI3MSwiZXhwIjoyMDk1MDI4MjcxfQ.rxGrWajWcJUt71bHr2fQJ4o9nLpHlhVLhFVl0W3CnGI';
+const BASE   = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1`;
+const KEY    = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 const BUCKET = 'images';
 const PUBLIC  = `${BASE}/object/public/${BUCKET}`;
 const headers = { Authorization: `Bearer ${KEY}`, apikey: KEY };
