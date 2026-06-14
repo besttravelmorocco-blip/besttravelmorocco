@@ -19,7 +19,7 @@ const ALL_MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-const ACCOMMODATION_LEVELS = ['Boutique', 'Luxury', 'Signature', 'Budget-friendly', 'Camping'];
+const ACCOMMODATION_LEVELS = ['Comfort', 'Premium', 'Signature Luxury'];
 
 // Type enforces pricing_model and departure_type automatically
 const TYPE_PRESETS: Record<ExperienceType, { pricing_model: PricingModel; departure_type: DepartureType; booking_cta: string }> = {

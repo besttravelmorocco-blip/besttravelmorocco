@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { RoleProvider } from '@/context/RoleContext';
+import RoleGuard from '@/components/RoleGuard';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
@@ -21,6 +23,8 @@ import BookingDetail from '@/pages/bookings/BookingDetail';
 import StaffPage from '@/pages/staff/StaffPage';
 import HomepageBuilderPage from '@/pages/website/HomepageBuilderPage';
 import NavigationEditorPage from '@/pages/website/NavigationEditorPage';
+import PopularToursPage from '@/pages/website/PopularToursPage';
+import NavDropdownPage from '@/pages/website/NavDropdownPage';
 import CustomersPage from '@/pages/customers/CustomersPage';
 import VehiclesPage from '@/pages/operations/VehiclesPage';
 import AccommodationsPage from '@/pages/accommodations/AccommodationsPage';
@@ -31,6 +35,10 @@ import CustomToursPage from '@/pages/leads/CustomToursPage';
 import ReportsPage from '@/pages/reports/ReportsPage';
 import EmailTemplatesPage from '@/pages/email/EmailTemplatesPage';
 import ExperiencesManagerPage from '@/pages/experiences/ExperiencesManagerPage';
+import TeamRolesPage from '@/pages/team/TeamRolesPage';
+import ProductsPage from '@/pages/products/ProductsPage';
+import ProductForm from '@/pages/products/ProductForm';
+import DeparturesPage from '@/pages/departures/DeparturesPage';
 
 // ── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -52,7 +60,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
-// ── Auth guard ────────────────────────────────────────────────────────────────
+// ── Auth + role guard ─────────────────────────────────────────────────────────
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -65,7 +73,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     </div>
   );
   if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  return <RoleProvider user={user}>{children}</RoleProvider>;
 }
 
 export default function App() {
@@ -89,11 +97,12 @@ export default function App() {
           <Route path="faqs" element={<FAQsPage />} />
           <Route path="inquiries" element={<InquiriesPage />} />
           <Route path="media" element={<MediaPage />} />
-          <Route path="settings" element={<SettingsPage />} />
           <Route path="bookings" element={<BookingsPage />} />
           <Route path="bookings/:id" element={<BookingDetail />} />
           <Route path="staff" element={<StaffPage />} />
           <Route path="homepage-builder" element={<HomepageBuilderPage />} />
+          <Route path="popular-tours" element={<PopularToursPage />} />
+          <Route path="nav-dropdown" element={<NavDropdownPage />} />
           <Route path="navigation" element={<NavigationEditorPage />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
@@ -105,6 +114,14 @@ export default function App() {
           <Route path="reports" element={<ReportsPage />} />
           <Route path="email-templates" element={<EmailTemplatesPage />} />
           <Route path="experiences" element={<ExperiencesManagerPage />} />
+          {/* ── Unified product system ── */}
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="products/new" element={<ProductForm />} />
+          <Route path="products/:id/edit" element={<ProductForm />} />
+          {/* ── Departures ── */}
+          <Route path="departures" element={<DeparturesPage />} />
+          <Route path="settings" element={<RoleGuard allow={['super_admin']}><SettingsPage /></RoleGuard>} />
+          <Route path="team" element={<RoleGuard allow={['super_admin']}><TeamRolesPage /></RoleGuard>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

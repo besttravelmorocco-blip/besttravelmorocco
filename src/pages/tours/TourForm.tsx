@@ -8,14 +8,17 @@ import {
   ArrowLeft, Save, Globe, Eye, Plus, Trash2,
   GripVertical, AlertCircle, Loader2, Star, Archive
 } from 'lucide-react';
+import MarkdownEditor from '@/components/MarkdownEditor';
+import TourFaqsTab from './TourFaqsTab';
 
 const CITIES = ['Marrakech', 'Fes', 'Casablanca', 'Tangier', 'Agadir', 'Errachidia', 'Ouarzazate', 'Essaouira', 'Rabat'];
-const TABS = ['Basics', 'Itinerary', 'Inclusions', 'Not Included', 'SEO'] as const;
+const TABS = ['Basics', 'Itinerary', 'Inclusions', 'Not Included', 'FAQs', 'SEO'] as const;
 type Tab = typeof TABS[number];
 
 interface FormState {
   title: string;
   subtitle: string;
+  hero_subtitle: string;
   description: string;
   days: number;
   from_city: string;
@@ -34,7 +37,7 @@ interface FormState {
 
 function emptyForm(): FormState {
   return {
-    title: '', subtitle: '', description: '', days: 3,
+    title: '', subtitle: '', hero_subtitle: '', description: '', days: 3,
     from_city: 'Marrakech', to_city: 'Marrakech',
     price: 'From €', image: '', status: 'draft', featured: false,
     itinerary: [], included: [], not_included: [], highlights: [],
@@ -66,7 +69,8 @@ export default function TourForm() {
       if (e || !data) { setError(e?.message ?? 'Tour not found'); setLoading(false); return; }
       const t = data as Tour;
       setForm({
-        title: t.title, subtitle: t.subtitle, description: t.description,
+        title: t.title, subtitle: t.subtitle, hero_subtitle: t.hero_subtitle ?? '',
+        description: t.description,
         days: t.days, from_city: t.from_city, to_city: t.to_city,
         price: t.price, image: t.image, status: t.status, featured: t.featured,
         itinerary:    parseTourItinerary(t),
@@ -104,6 +108,7 @@ export default function TourForm() {
     const payload = {
       title: form.title.trim(),
       subtitle: form.subtitle || `${form.days} DAYS`,
+      hero_subtitle: form.hero_subtitle.trim() || null,
       description: form.description.trim(),
       days: form.days,
       from_city: form.from_city,
@@ -216,8 +221,26 @@ export default function TourForm() {
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Description</label>
-                <textarea className="form-input" rows={4} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Describe the tour experience…" style={{ resize: 'vertical' }} />
+                <label className="form-label">
+                  Hero Subtitle <span className="text-3" style={{ fontWeight: 400 }}>({form.hero_subtitle.length}/180) — short teaser shown under the title in the hero</span>
+                </label>
+                <input
+                  className="form-input"
+                  value={form.hero_subtitle}
+                  onChange={e => set('hero_subtitle', e.target.value)}
+                  maxLength={180}
+                  placeholder="e.g. Cross the Sahara dunes and sleep under the stars on this 3-day desert escape from Marrakech."
+                />
+                <div style={{ height: 3, borderRadius: 2, marginTop: 6, background: form.hero_subtitle.length > 160 ? '#EF4444' : form.hero_subtitle.length > 120 ? '#F59E0B' : 'var(--sand)', width: `${Math.min((form.hero_subtitle.length / 180) * 100, 100)}%`, transition: 'width 0.2s, background 0.2s' }} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Tour Overview <span className="text-3" style={{ fontWeight: 400 }}>— full description shown in the Tour Overview section · supports Markdown</span></label>
+                <MarkdownEditor
+                  value={form.description}
+                  onChange={v => set('description', v)}
+                  rows={6}
+                  placeholder="Describe the full tour experience, highlights, and what makes it special…"
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Featured Image Path</label>
@@ -242,18 +265,30 @@ export default function TourForm() {
                   <p className="text-3" style={{ marginBottom: 12 }}>No itinerary days yet</p>
                   <button onClick={addDay} className="btn btn-primary"><Plus size={14} /> Add First Day</button>
                 </div>
-              ) : form.itinerary.map((day, i) => (
-                <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 16, marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                    <GripVertical size={14} style={{ color: 'var(--text-3)', flexShrink: 0 }} />
-                    <span style={{ fontWeight: 700, color: 'var(--sand)', fontSize: 13, flexShrink: 0 }}>Day {day.day}</span>
-                    <input className="form-input" style={{ flex: 1 }} value={day.title} onChange={e => updateDay(i, 'title', e.target.value)} placeholder="Day title" />
-                    <button onClick={() => removeDay(i)} className="btn-icon btn-icon-danger"><Trash2 size={13} /></button>
+              ) : (
+                <>
+                  {form.itinerary.map((day, i) => (
+                    <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 16, marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                        <GripVertical size={14} style={{ color: 'var(--text-3)', flexShrink: 0 }} />
+                        <span style={{ fontWeight: 700, color: 'var(--sand)', fontSize: 13, flexShrink: 0 }}>Day {day.day}</span>
+                        <input className="form-input" style={{ flex: 1 }} value={day.title} onChange={e => updateDay(i, 'title', e.target.value)} placeholder="Day title" />
+                        <button onClick={() => removeDay(i)} className="btn-icon btn-icon-danger"><Trash2 size={13} /></button>
+                      </div>
+                      <input className="form-input" style={{ marginBottom: 8 }} value={day.route} onChange={e => updateDay(i, 'route', e.target.value)} placeholder="Route (e.g. Marrakech → Ouarzazate → Merzouga)" />
+                      <MarkdownEditor
+                        value={day.desc}
+                        onChange={v => updateDay(i, 'desc', v)}
+                        rows={4}
+                        placeholder="Day description — supports Markdown formatting…"
+                      />
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 4 }}>
+                    <button onClick={addDay} className="btn btn-outline" style={{ fontSize: 12 }}><Plus size={13} /> Add Day</button>
                   </div>
-                  <input className="form-input" style={{ marginBottom: 8 }} value={day.route} onChange={e => updateDay(i, 'route', e.target.value)} placeholder="Route (e.g. Marrakech → Ouarzazate → Merzouga)" />
-                  <textarea className="form-input" rows={3} value={day.desc} onChange={e => updateDay(i, 'desc', e.target.value)} placeholder="Day description…" style={{ resize: 'vertical' }} />
-                </div>
-              ))}
+                </>
+              )}
             </div>
           )}
 
@@ -322,6 +357,10 @@ export default function TourForm() {
                 </div>
               )}
             </div>
+          )}
+
+          {tab === 'FAQs' && (
+            <TourFaqsTab tourId={id} />
           )}
 
           {tab === 'SEO' && (

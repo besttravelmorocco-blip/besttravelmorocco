@@ -29,6 +29,7 @@ export interface Tour {
   id: string;
   title: string;
   subtitle: string;         // e.g. "3 DAYS"
+  hero_subtitle: string | null;
   description: string;
   days: number;
   from_city: string;
@@ -51,7 +52,18 @@ export interface Tour {
   updated_at: string;
 }
 
-// faqs table
+// tour_faqs table
+export interface TourFaq {
+  id: string;
+  tour_id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  enabled: boolean;
+  created_at: string;
+}
+
+// faqs table (general site FAQs)
 export interface FAQ {
   id: string;
   question: string;
@@ -129,19 +141,35 @@ export interface BlogPost {
 
 // inquiries table
 export interface Inquiry {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone: string | null;
   tour_id: string | null;
   tour_name: string | null;
+  subject: string | null;
   message: string | null;
   travel_date: string | null;
   travelers: number | null;
+  adults: number | null;
+  children: number | null;
+  country: string | null;
+  source: string | null;
+  whatsapp_ok: boolean | null;
+  agreed_terms: boolean | null;
+  reference_number: string | null;
   status: InquiryStatus;
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// blocked_emails table
+export interface BlockedEmail {
+  id: number;
+  email: string;
+  reason: string | null;
+  blocked_at: string;
 }
 
 // testimonials table
@@ -331,8 +359,32 @@ export interface Vehicle {
   updated_at: string;
 }
 
-export type AccomCategory = 'standard' | 'luxury';
-export type PricingTier   = 'boutique' | 'luxury' | 'signature';
+// ─── Unified 3-tier accommodation system ─────────────────────────────────────
+export type AccomTier = 'comfort' | 'premium' | 'signature_luxury';
+
+// Legacy aliases kept so existing imports compile without changes
+export type AccomCategory = AccomTier;
+export type PricingTier   = AccomTier;
+
+export const ACCOM_TIERS = ['comfort', 'premium', 'signature_luxury'] as const satisfies readonly AccomTier[];
+
+export const ACCOM_TIER_LABELS: Record<AccomTier, string> = {
+  comfort:          'Comfort',
+  premium:          'Premium',
+  signature_luxury: 'Signature Luxury',
+};
+
+export const ACCOM_TIER_COLORS: Record<AccomTier, string> = {
+  comfort:          '#60A5FA',
+  premium:          '#C9A96E',
+  signature_luxury: '#F59E0B',
+};
+
+export const ACCOM_TIER_DESC: Record<AccomTier, string> = {
+  comfort:          'Well-appointed riads and hotels — comfortable, authentic, great value.',
+  premium:          'Superior properties with enhanced amenities, refined design and attentive service.',
+  signature_luxury: 'Ultra-luxury venues with exceptional design, exclusive experiences and impeccable service.',
+};
 
 export interface Accommodation {
   id: string;
@@ -475,9 +527,125 @@ export interface EmailTemplate {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// EXPERIENCES / PROGRAMS TYPES  (yoga_retreat | upcoming_trip | student_trip)
+// UNIFIED PRODUCT SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export type ProductCategory =
+  | 'morocco_tour'
+  | 'student_trip'
+  | 'yoga_retreat'
+  | 'upcoming_tour'
+  | 'group_adventure'
+  | 'event'
+  | 'experience';
+
+export type BookingType = 'inquiry' | 'fixed_departure';
+
+export type ProductStatus = 'draft' | 'published' | 'archived';
+
+// products table — single source of truth for all tour/experience types
+export interface Product {
+  id: string;                      // slug for migrated tours; UUID for everything else
+  slug: string;
+  category: ProductCategory;
+  booking_type: BookingType;
+  title: string;
+  subtitle: string | null;
+  hero_subtitle: string | null;
+  description: string | null;
+  duration_days: number | null;
+  duration_nights: number | null;
+  from_city: string | null;
+  to_city: string | null;
+  departure_city: string | null;
+  price: string | null;            // display string "From €490"
+  price_amount: number | null;
+  starting_price: number | null;
+  deposit_percentage: number;
+  images: string[];
+  highlights: string[];
+  itinerary: ItineraryDay[];
+  included: string[];
+  not_included: string[];
+  min_group_size: number | null;
+  max_group_size: number | null;
+  capacity: number | null;
+  accommodation_level: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_keywords: string | null;
+  status: ProductStatus;
+  featured: boolean;
+  popular: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const PRODUCT_CATEGORIES = [
+  'morocco_tour', 'student_trip', 'yoga_retreat',
+  'upcoming_tour', 'group_adventure', 'event', 'experience',
+] as const satisfies readonly ProductCategory[];
+
+export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
+  morocco_tour:    'Morocco Tour',
+  student_trip:    'Student Trip',
+  yoga_retreat:    'Yoga Retreat',
+  upcoming_tour:   'Upcoming Tour',
+  group_adventure: 'Group Adventure',
+  event:           'Event',
+  experience:      'Experience',
+};
+
+export const PRODUCT_CATEGORY_COLORS: Record<ProductCategory, string> = {
+  morocco_tour:    '#C9A96E',
+  student_trip:    '#A78BFA',
+  yoga_retreat:    '#10B981',
+  upcoming_tour:   '#60A5FA',
+  group_adventure: '#F97316',
+  event:           '#EC4899',
+  experience:      '#06B6D4',
+};
+
+// ─── Departures table ─────────────────────────────────────────────────────────
+export type DepartureStatus = 'available' | 'guaranteed' | 'limited' | 'sold_out' | 'closed';
+
+export interface Departure {
+  id: string;
+  product_id: string;
+  departure_date: string;
+  return_date: string | null;
+  max_seats: number;
+  min_seats: number;
+  available_seats: number;
+  status: DepartureStatus;
+  deposit_amount: number | null;
+  deposit_percentage: number;
+  payment_link: string | null;
+  payment_instructions: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  product?: Product;    // joined when fetched with select('*, product:products(*)')
+}
+
+export const DEPARTURE_STATUS_LABELS: Record<DepartureStatus, string> = {
+  available:  'Available',
+  guaranteed: 'Guaranteed',
+  limited:    'Limited Spots',
+  sold_out:   'Sold Out',
+  closed:     'Closed',
+};
+
+export const DEPARTURE_STATUS_COLORS: Record<DepartureStatus, string> = {
+  available:  '#60A5FA',
+  guaranteed: '#10B981',
+  limited:    '#F59E0B',
+  sold_out:   '#EF4444',
+  closed:     '#6B7280',
+};
+
+// ─── Legacy types — kept for backward compat with existing admin pages ────────
 export type ExperienceType  = 'yoga_retreat' | 'student_trip' | 'upcoming_trip';
 export type DepartureType   = 'fixed_dates'  | 'flexible_window';
 export type PricingModel    = 'fixed'        | 'flexible';

@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { Accommodation, AccomCategory } from '@/lib/supabase';
+import type { Accommodation, AccomTier } from '@/lib/supabase';
+import { ACCOM_TIERS, ACCOM_TIER_LABELS, ACCOM_TIER_COLORS } from '@/lib/supabase';
+type AccomCategory = AccomTier; // local alias
 import { toast } from 'sonner';
 import {
   Plus, RefreshCw, AlertCircle, X, Save, Edit2, Trash2,
@@ -26,8 +28,8 @@ const TYPE_COLORS: Record<string, string> = {
   riad: '#C9A96E', hotel: '#60A5FA', kasbah: '#A78BFA',
   camp: '#F59E0B', villa: '#34D399', resort: '#F472B6',
 };
-const CAT_LABELS: Record<AccomCategory, string> = { standard: 'Standard', luxury: 'Luxury' };
-const CAT_COLORS: Record<AccomCategory, string> = { standard: '#60A5FA', luxury: '#C9A96E' };
+const CAT_LABELS = ACCOM_TIER_LABELS;
+const CAT_COLORS = ACCOM_TIER_COLORS;
 
 // ─── Form state ───────────────────────────────────────────────────────────────
 
@@ -65,7 +67,7 @@ interface AccomForm {
 }
 
 const emptyForm = (): AccomForm => ({
-  destination: 'Marrakech', customDest: '', category: 'standard', type: 'riad',
+  destination: 'Marrakech', customDest: '', category: 'comfort', type: 'riad',
   name: '', stars: '', description: '', is_active: true,
   contact_person: '', contact_name: '', contact_phone: '', contact_email: '',
   address: '', website: '', google_maps_link: '',
@@ -115,7 +117,7 @@ function accomToForm(a: Accommodation): AccomForm {
   return {
     destination: isPreset ? a.destination : '__other__',
     customDest: isPreset ? '' : a.destination,
-    category: (a.category as AccomCategory) || 'standard',
+    category: (a.category as AccomCategory) || 'comfort',
     type: a.type,
     name: a.name,
     stars: a.stars?.toString() ?? '',
@@ -267,8 +269,11 @@ function DestinationGroup({
   onAddHere: (cat: AccomCategory) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
-  const standard = items.filter(a => a.category === 'standard');
-  const luxury = items.filter(a => a.category === 'luxury');
+  const byTier = {
+    comfort:          items.filter(a => a.category === 'comfort'),
+    premium:          items.filter(a => a.category === 'premium'),
+    signature_luxury: items.filter(a => a.category === 'signature_luxury'),
+  } as const;
 
   return (
     <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 12 }}>
@@ -283,29 +288,24 @@ function DestinationGroup({
         <MapPin size={13} style={{ color: 'var(--sand)', flexShrink: 0 }} />
         <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-1)', textAlign: 'left' }}>{destination}</span>
         <div style={{ marginLeft: 8, display: 'flex', gap: 6 }}>
-          {standard.length > 0 && (
-            <span style={{ fontSize: 10, background: '#60A5FA22', color: '#60A5FA', padding: '2px 7px', borderRadius: 10, fontWeight: 600 }}>
-              {standard.length} Standard
+          {ACCOM_TIERS.filter(t => byTier[t].length > 0).map(t => (
+            <span key={t} style={{ fontSize: 10, background: `${CAT_COLORS[t]}22`, color: CAT_COLORS[t], padding: '2px 7px', borderRadius: 10, fontWeight: 600 }}>
+              {byTier[t].length} {CAT_LABELS[t]}
             </span>
-          )}
-          {luxury.length > 0 && (
-            <span style={{ fontSize: 10, background: '#C9A96E22', color: '#C9A96E', padding: '2px 7px', borderRadius: 10, fontWeight: 600 }}>
-              {luxury.length} Luxury
-            </span>
-          )}
+          ))}
         </div>
       </button>
 
       {!collapsed && (
         <div style={{ borderTop: '1px solid var(--border)' }}>
-          {/* Column headers */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px 200px 80px', padding: '6px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-1)' }}>
             {['Property', 'Rates (€/night)', 'Contact', ''].map(h => (
               <div key={h} style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--text-3)' }}>{h}</div>
             ))}
           </div>
-          <CategorySection cat="standard" items={standard} onEdit={onEdit} onDelete={onDelete} onAddHere={() => onAddHere('standard')} />
-          <CategorySection cat="luxury" items={luxury} onEdit={onEdit} onDelete={onDelete} onAddHere={() => onAddHere('luxury')} />
+          {ACCOM_TIERS.map(t => (
+            <CategorySection key={t} cat={t} items={byTier[t]} onEdit={onEdit} onDelete={onDelete} onAddHere={() => onAddHere(t)} />
+          ))}
         </div>
       )}
     </div>
@@ -394,8 +394,7 @@ function AccomModal({
                 <>
                   {label('Category *')}
                   <select {...inp()} value={f.category} onChange={e => set('category', e.target.value as AccomCategory)}>
-                    <option value="standard">Standard</option>
-                    <option value="luxury">Luxury</option>
+                    {ACCOM_TIERS.map(t => <option key={t} value={t}>{ACCOM_TIER_LABELS[t]}</option>)}
                   </select>
                 </>,
               )}
@@ -612,7 +611,7 @@ export default function AccommodationsPage() {
 
   function openAdd(defaultDest?: string, defaultCat?: AccomCategory) {
     setEditing(null);
-    setForm({ ...emptyForm(), destination: defaultDest ?? 'Marrakech', category: defaultCat ?? 'standard' });
+    setForm({ ...emptyForm(), destination: defaultDest ?? 'Marrakech', category: defaultCat ?? 'comfort' });
     setShowModal(true);
   }
   function openEdit(a: Accommodation) {
@@ -693,8 +692,9 @@ export default function AccommodationsPage() {
           <h1 className="page-title">Accommodations</h1>
           <p className="page-subtitle">
             {items.length} properties · {[...new Set(items.map(a => a.destination))].length} destinations ·
-            {' '}{items.filter(a => a.category === 'standard').length} Standard ·
-            {' '}{items.filter(a => a.category === 'luxury').length} Luxury
+            {' '}{items.filter(a => a.category === 'comfort').length} Comfort ·
+            {' '}{items.filter(a => a.category === 'premium').length} Premium ·
+            {' '}{items.filter(a => a.category === 'signature_luxury').length} Signature Luxury
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -724,14 +724,14 @@ export default function AccommodationsPage() {
           ))}
         </select>
         <div style={{ display: 'flex', gap: 6 }}>
-          {(['all', 'standard', 'luxury'] as const).map(c => (
+          {(['all', ...ACCOM_TIERS] as const).map(c => (
             <button
               key={c}
               onClick={() => setCatFilter(c)}
               className={`btn ${catFilter === c ? 'btn-primary' : 'btn-outline'}`}
               style={{ fontSize: 12 }}
             >
-              {c === 'all' ? 'All' : CAT_LABELS[c]}
+              {c === 'all' ? 'All' : CAT_LABELS[c as AccomTier]}
             </button>
           ))}
         </div>
