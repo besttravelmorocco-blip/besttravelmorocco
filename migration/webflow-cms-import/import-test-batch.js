@@ -20,20 +20,39 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, '../..');
 
 // ── Config ─────────────────────────────────────────────────────────────────
-const SUPABASE_URL           = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY   = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const MIGRATION_BATCH        = 'webflow-import-2026-08';
+// Auto-load .env.local from project root if env vars not already set
+function loadEnvLocal() {
+  const envPath = join(ROOT, '.env.local');
+  if (!existsSync(envPath)) return {};
+  const out = {};
+  for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const idx = trimmed.indexOf('=');
+    if (idx < 0) continue;
+    const key = trimmed.slice(0, idx).trim();
+    const val = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+    out[key] = val;
+  }
+  return out;
+}
+const envLocal = loadEnvLocal();
+const getVar = (k) => process.env[k] || envLocal[k];
+
+const SUPABASE_URL         = getVar('SUPABASE_URL') || getVar('VITE_SUPABASE_URL');
+const SUPABASE_SERVICE_KEY = getVar('SUPABASE_SERVICE_ROLE_KEY') || getVar('VITE_SUPABASE_SERVICE_ROLE_KEY');
+const MIGRATION_BATCH      = 'webflow-import-2026-08';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('ERROR: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in environment.');
-  console.error('Find them at: Supabase Dashboard → Project Settings → API');
+  console.error('ERROR: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY not found in environment or .env.local');
   process.exit(1);
 }
 
