@@ -15,8 +15,8 @@
  *            (copy from Supabase Dashboard → Project Settings → API)
  *
  * Rollback:
- *   DELETE FROM products   WHERE id IN ('the-berber-queen-kahina','what-is-berber-amazigh-jewellery');
- *   DELETE FROM blog_posts WHERE id IN ('zagora-2day-desert-dream','3-day-fes-to-marrakech-via-desert');
+ *   DELETE FROM blog_posts WHERE id IN ('the-berber-queen-kahina','what-is-berber-amazigh-jewellery');
+ *   DELETE FROM products   WHERE id IN ('zagora-2day-desert-dream','3-day-fes-to-marrakech-via-desert');
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -91,8 +91,11 @@ async function insertTour(record) {
 // ── Blog Records ─────────────────────────────────────────────────────────────
 // Source: webflow-blogs.json (indexes 1 and 5 = Category A posts)
 
+// Blog source data (absolute path — this file lives in the session scratchpad)
+const SCRATCHPAD = '/private/tmp/claude-501/-Users-hmad/60d2464d-2549-409e-8db2-0d9d8e24865b/scratchpad';
+
 const blogsRaw = JSON.parse(
-  readFileSync(join(__dirname, '../../..', 'scratchpad/webflow-blogs.json'), 'utf8')
+  readFileSync(join(SCRATCHPAD, 'webflow-blogs.json'), 'utf8')
 );
 
 // Find by slug
@@ -157,7 +160,7 @@ const BLOG_TEST_RECORDS = [
 let toursRaw = [];
 try {
   toursRaw = JSON.parse(
-    readFileSync(join(__dirname, '../../..', 'scratchpad/webflow-tours.json'), 'utf8')
+    readFileSync(join(SCRATCHPAD, 'webflow-tours.json'), 'utf8')
   );
 } catch {
   console.error('ERROR: webflow-tours.json not found. Run the tour crawler first.');
