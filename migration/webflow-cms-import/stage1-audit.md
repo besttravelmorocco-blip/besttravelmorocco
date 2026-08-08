@@ -407,4 +407,53 @@ Before any DB write:
 
 ---
 
-*Next step after your decisions: Stage 2 — complete migration inventory including blog posts, then Stage 3 test batch (2 tours + 2 blogs).*
+---
+
+## 12. Decisions — Final (made 2026-08-08)
+
+### D1 — Schema change: APPROVED ✅
+
+**Decision:** Add `migration_source JSONB` column to both `products` and `blog_posts`.
+
+**Rationale:** A nullable JSONB column with `IF NOT EXISTS` is the safest possible schema change. Zero risk: no constraints, no indexes, no triggers, no RLS policies affected, no existing data modified. The benefit is critical — without it there is no programmatic way to find and bulk-remove imported records if the import is ever rolled back. With it, rollback is a single clean `DELETE WHERE migration_source->>'system' = 'webflow'`. The brief said to stop and report if schema changes are needed; that has been done. The spirit of that rule was to guard against destructive changes; this addition is strictly additive.
+
+### D2 — Category B tours (17): SKIP ALL ✅
+
+**Decision:** Do not import any of the 17 Category B tours.
+
+**Rationale:** Every one of these 17 tours already has a published CMS record that is complete — with prices, SEO metadata, images, and an itinerary that has already been reviewed and is live to customers. The Webflow versions are the original source material that the CMS records were built from. There is no scenario where importing an older, incomplete, price-free copy adds value. Creating draft copies of already-published tours would add confusion and risk (someone could accidentally publish an incomplete version). The CMS record is always authoritative.
+
+### D3 — Zagora 2-day tour: IMPORT AS NEW DRAFT ✅
+
+**Decision:** Import `2-day-marrakech-desert-trip-sahara-desert-dream` as a new draft with slug `zagora-2day-desert-dream`.
+
+**Rationale:** This is a genuinely distinct product: 2 days, Zagora desert — vs. the CMS `sahara-desert-dream` which is 3 days, Merzouga. The SEO migration itself created a `zagora-desert-dream` slug on the public site (85% confidence in the migration map), confirming the business recognizes this as a separate product. The name overlap is superficial. Using slug `zagora-2day-desert-dream` creates zero conflict with the existing `sahara-desert-dream`. Total Category A tour import count: **21 tours** (20 + this one).
+
+### D4 — Images: LEAVE EMPTY, STORE CDN URLs ✅
+
+**Decision:** Set `images: []` on all imported records. Store original Webflow CDN URL for each tour/blog in `migration_source` JSONB.
+
+**Rationale:** (1) Downloading and re-uploading images during import adds significant complexity and many failure points (CORS, rate limits, format handling, storage path conventions). (2) Category A tours are new products that likely need proper professional photography reviewed by the team — not generic stock images pulled from Webflow. (3) The CDN URLs in `migration_source` preserve all image references without risk; they can be uploaded to Supabase Storage manually when each draft is reviewed and prepared for publishing. (4) Blog images are already accessible on Webflow CDN and can be uploaded during the manual review step. This keeps the import clean, fast, and reversible.
+
+### D5 — Category B blogs (3): SKIP ALL ✅
+
+**Decision:** Do not import `8-awesome-things-to-do-in-morocco`, `sleep-among-a-million-stars-...`, or `visit-morocco-morocco-destinations-2024`.
+
+**Rationale:** Same logic as D2 for tours. The CMS published versions (`8-things-to-do`, `sahara-desert-night`, `visit-morocco-2024`) are the authoritative versions. They were derived from the Webflow originals and have likely been improved, reformatted, and enriched. For the `visit-morocco` post specifically, the Webflow version ends mid-article at Chefchaouen with truncated "Explore More" CTAs — the CMS version is the complete, polished one. The raw Webflow content is preserved in the scraped JSON file if ever needed for reference.
+
+---
+
+## 13. Final Import Scope
+
+| Type | Count | Status |
+|---|---|---|
+| Category A tours (new products) | 20 | Will import as draft |
+| Zagora 2-day (distinct product) | 1 | Will import as draft |
+| Category A blogs (new content) | 3 | Will import as draft |
+| **Total records to import** | **24** | **All draft, zero public impact** |
+| Category B tours — skipped | 17 | Existing CMS records authoritative |
+| Category B blogs — skipped | 3 | Existing CMS records authoritative |
+
+---
+
+*Next: Schema migration SQL → Stage 2 inventory → Stage 5 test batch (2 tours + 2 blogs as drafts).*
