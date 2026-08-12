@@ -23,7 +23,7 @@ type NavDef = { label: string; icon: LucideIcon; to: string };
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const PRODUCTS_ITEMS: NavDef[] = [
-  { label: 'All Products',    icon: PackageOpen,   to: '/products' },
+  { label: 'All Tours',       icon: PackageOpen,   to: '/products' },
   { label: 'Morocco Tours',   icon: Map,           to: '/products?category=morocco_tour' },
   { label: 'Student Trips',   icon: GraduationCap, to: '/products?category=student_trip' },
   { label: 'Yoga Retreats',   icon: Leaf,          to: '/products?category=yoga_retreat' },
@@ -185,7 +185,7 @@ export default function Sidebar() {
             <DeptHeader label="Website & Content" deptKey="web" open={isOpen('web')} onToggle={toggleDept} color="#60A5FA" />
             {isOpen('web') && (
               <>
-                <SectionLabel label="Products" />
+                <SectionLabel label="Tours" />
                 {PRODUCTS_ITEMS.map(item => <SidebarNavItem key={item.to} {...item} />)}
 
                 <SectionLabel label="Content" />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import type { Tour, Inquiry, OpBooking } from '@/lib/supabase';
+import type { Tour, Inquiry, OpBooking, Product } from '@/lib/supabase';
 import { BOOKING_STATUS_COLORS, BOOKING_STATUS_LABELS } from '@/lib/supabase';
 import {
   Map, Inbox, Globe, FileText, Star,
@@ -48,7 +48,7 @@ export default function Dashboard() {
           { count: testCount },
           { data: bookings, error: be },
         ] = await Promise.all([
-          supabase.from('tours').select('*').order('created_at', { ascending: false }),
+          supabase.from('products').select('*').eq('category', 'morocco_tour').order('created_at', { ascending: false }),
           supabase.from('inquiries').select('*').order('created_at', { ascending: false }),
           supabase.from('destinations').select('*', { count: 'exact', head: true }),
           supabase.from('blog_posts').select('*', { count: 'exact', head: true }),
@@ -60,7 +60,7 @@ export default function Dashboard() {
         if (ie) throw ie;
         if (be) throw be;
 
-        const tourList = (tours ?? []) as Tour[];
+        const tourList = (tours ?? []) as Product[];
         const inquiryList = (inquiries ?? []) as Inquiry[];
         const bookingList = (bookings ?? []) as OpBooking[];
 
@@ -288,7 +288,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {[
               { label: 'New Booking', to: '/bookings', primary: true },
-              { label: 'New Tour', to: '/tours/new' },
+              { label: 'New Tour', to: '/products/new' },
               { label: 'View Inquiries', to: '/inquiries' },
               { label: 'Staff Roster', to: '/staff' },
               { label: 'Manage Destinations', to: '/destinations' },
