@@ -1,0 +1,15 @@
+# Never commit raw database exports to git.
+# DB data belongs in GitHub Actions artifacts or encrypted off-site storage.
+
+*.json
+*.sql
+*.dump
+*.gz
+*.tar
+*.zip
+*.csv
+
+# Only the lightweight manifests directory is tracked
+!manifests/
+!manifests/**
+!.gitignore
