@@ -1,0 +1,85 @@
+name: Daily Database Backup
+
+on:
+  schedule:
+    # Every day at 02:00 UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual backup"
+        required: false
+        default: "manual"
+
+permissions:
+  contents: write  # needed to commit manifests
+
+jobs:
+  backup:
+    name: Export & Archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate timestamp
+        id: ts
+        run: echo "ts=$(date -u '+%Y-%m-%d_%H-%M-%S')" >> "$GITHUB_OUTPUT"
+
+      - name: Run backup script
+        id: backup
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: node scripts/backup-db.js
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: btm-backup-${{ steps.ts.outputs.ts }}
+          path: backup-output/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Commit lightweight manifest
+        run: |
+          git config user.name  "BTM Backup Bot"
+          git config user.email "hello@besttravelmorocco.com"
+          git add backups/manifests/
+          if git diff --cached --quiet; then
+            echo "No new manifest to commit."
+          else
+            git commit -m "chore(backup): daily backup manifest ${{ steps.ts.outputs.ts }}"
+            git push
+          fi
+
+      - name: Send failure alert
+        if: failure()
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          if [ -z "$RESEND_API_KEY" ]; then
+            echo "RESEND_API_KEY not set — skipping email alert. Check GitHub Actions notifications."
+            exit 0
+          fi
+          curl -s -X POST https://api.resend.com/emails \
+            -H "Authorization: Bearer $RESEND_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "from": "Best Travel Morocco Backup <hello@besttravelmorocco.com>",
+              "to": ["hello@besttravelmorocco.com"],
+              "subject": "⚠️ BTM Daily Backup FAILED — ${{ steps.ts.outputs.ts }}",
+              "html": "<p><strong>The automated daily backup has failed.</strong></p><p>Run: <a href=\"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\">View logs</a></p><p>Timestamp: ${{ steps.ts.outputs.ts }}<br>Commit: ${{ github.sha }}</p><p>Immediate action may be required if data was recently changed.</p>"
+            }'

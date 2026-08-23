@@ -44,3 +44,5 @@ coverage/
 .nyc_output/
 .vercel
 backup/
+# Backup script temp output — uploaded to GitHub Actions artifacts, never committed
+backup-output/
