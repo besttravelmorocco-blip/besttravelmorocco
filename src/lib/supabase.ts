@@ -123,6 +123,21 @@ export interface Destination {
   updated_at: string;
 }
 
+// destination_highlights table
+export interface DestinationHighlight {
+  id: string;
+  destination_id: string;
+  category: string;
+  title: string;
+  description: string | null;
+  image: string | null;
+  image_alt: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // blog_posts table
 export interface BlogPost {
   id: string;
@@ -574,6 +589,14 @@ export interface Product {
   seo_title: string | null;
   seo_description: string | null;
   seo_keywords: string | null;
+  focus_keyword: string | null;
+  canonical_url: string | null;
+  og_title: string | null;
+  og_description: string | null;
+  og_image: string | null;
+  twitter_image: string | null;
+  robots_index: boolean;
+  robots_follow: boolean;
   status: ProductStatus;
   featured: boolean;
   popular: boolean;
