@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import TourFaqsTab from '@/pages/tours/TourFaqsTab';
+import SeoPanel, { emptySeoData } from '@/components/SeoPanel';
+import type { SeoData, SeoContent } from '@/components/SeoPanel';
 
 const CITIES = ['Marrakech', 'Fes', 'Casablanca', 'Tangier', 'Agadir', 'Errachidia', 'Ouarzazate', 'Essaouira', 'Rabat'];
 const TABS = ['Basics', 'Itinerary', 'Inclusions', 'Not Included', 'FAQs', 'SEO'] as const;
@@ -48,9 +50,7 @@ interface FormState {
   status: 'draft' | 'published' | 'archived';
   featured: boolean;
   popular: boolean;
-  seo_title: string;
-  seo_description: string;
-  seo_keywords: string;
+  seo: SeoData;
 }
 
 function emptyForm(): FormState {
@@ -63,7 +63,7 @@ function emptyForm(): FormState {
     images: [], itinerary: [], included: [], not_included: [], highlights: [],
     min_group_size: '', max_group_size: '', accommodation_level: '',
     status: 'draft', featured: false, popular: false,
-    seo_title: '', seo_description: '', seo_keywords: '',
+    seo: emptySeoData(),
   };
 }
 
@@ -94,9 +94,19 @@ function productToForm(p: Product): FormState {
     status:            p.status,
     featured:          p.featured,
     popular:           p.popular,
-    seo_title:         p.seo_title ?? '',
-    seo_description:   p.seo_description ?? '',
-    seo_keywords:      p.seo_keywords ?? '',
+    seo: {
+      seo_title:          p.seo_title          ?? '',
+      seo_description:    p.seo_description    ?? '',
+      focus_keyword:      p.focus_keyword       ?? '',
+      secondary_keywords: p.seo_keywords        ?? '',
+      canonical_url:      p.canonical_url       ?? '',
+      og_title:           p.og_title            ?? '',
+      og_description:     p.og_description      ?? '',
+      og_image:           p.og_image            ?? '',
+      twitter_image:      p.twitter_image       ?? '',
+      robots_index:       p.robots_index        ?? true,
+      robots_follow:      p.robots_follow       ?? true,
+    },
   };
 }
 
@@ -184,9 +194,17 @@ export default function ProductForm() {
       max_group_size:    form.max_group_size ? Number(form.max_group_size) : null,
       capacity:          form.max_group_size ? Number(form.max_group_size) : null,
       accommodation_level: form.accommodation_level || null,
-      seo_title:         form.seo_title || null,
-      seo_description:   form.seo_description || null,
-      seo_keywords:      form.seo_keywords || null,
+      seo_title:         form.seo.seo_title || null,
+      seo_description:   form.seo.seo_description || null,
+      seo_keywords:      form.seo.secondary_keywords || null,
+      focus_keyword:     form.seo.focus_keyword || null,
+      canonical_url:     form.seo.canonical_url || null,
+      og_title:          form.seo.og_title || null,
+      og_description:    form.seo.og_description || null,
+      og_image:          form.seo.og_image || null,
+      twitter_image:     form.seo.twitter_image || null,
+      robots_index:      form.seo.robots_index,
+      robots_follow:     form.seo.robots_follow,
       status,
       featured:          form.featured,
       popular:           form.popular,
@@ -555,30 +573,24 @@ export default function ProductForm() {
           {tab === 'FAQs' && <TourFaqsTab tourId={id} />}
 
           {/* ── SEO ─────────────────────────────────────────────────────────── */}
-          {tab === 'SEO' && (
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div className="form-group">
-                <label className="form-label">SEO Title <span className="text-3" style={{ fontWeight: 400 }}>({form.seo_title.length}/60)</span></label>
-                <input className="form-input" value={form.seo_title} onChange={e => set('seo_title', e.target.value)} maxLength={60} placeholder={`${form.duration_days} Day ${form.title} | Best Travel Morocco`} />
-                <div style={{ height: 3, borderRadius: 2, marginTop: 6, background: form.seo_title.length > 55 ? '#EF4444' : form.seo_title.length > 45 ? '#F59E0B' : categoryColor, width: `${Math.min((form.seo_title.length / 60) * 100, 100)}%`, transition: 'width 0.2s, background 0.2s' }} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Meta Description <span className="text-3" style={{ fontWeight: 400 }}>({form.seo_description.length}/160)</span></label>
-                <textarea className="form-input" rows={3} value={form.seo_description} onChange={e => set('seo_description', e.target.value)} maxLength={160} placeholder={form.description.slice(0, 160)} style={{ resize: 'none' }} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Keywords <span className="text-3" style={{ fontWeight: 400 }}>comma-separated</span></label>
-                <input className="form-input" value={form.seo_keywords} onChange={e => set('seo_keywords', e.target.value)} placeholder="morocco tour, sahara desert, camel trek" />
-              </div>
-              {/* Google Preview */}
-              <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
-                <p className="text-3" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Google Preview</p>
-                <div style={{ color: '#1a0dab', fontSize: 18, marginBottom: 2 }}>{form.seo_title || `${form.duration_days} Day ${form.title} | Best Travel Morocco`}</div>
-                <div style={{ color: '#006621', fontSize: 13, marginBottom: 4 }}>besttravelmorocco.com › {form.slug || 'product-slug'}</div>
-                <div style={{ color: '#545454', fontSize: 14, lineHeight: 1.5 }}>{form.seo_description || form.description.slice(0, 160)}</div>
-              </div>
-            </div>
-          )}
+          {tab === 'SEO' && (() => {
+            const seoContent: SeoContent = {
+              title:       form.title,
+              description: form.description,
+              slug:        form.slug,
+              contentType: 'product',
+              days:        form.duration_days,
+              fromCity:    form.from_city,
+              price:       form.price,
+            };
+            return (
+              <SeoPanel
+                value={form.seo}
+                onChange={(seo: SeoData) => set('seo', seo)}
+                content={seoContent}
+              />
+            );
+          })()}
         </div>
 
         {/* Right sidebar */}

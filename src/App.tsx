@@ -39,6 +39,8 @@ import TeamRolesPage from '@/pages/team/TeamRolesPage';
 import ProductsPage from '@/pages/products/ProductsPage';
 import ProductForm from '@/pages/products/ProductForm';
 import DeparturesPage from '@/pages/departures/DeparturesPage';
+import SeoDashboardPage from '@/pages/seo/SeoDashboardPage';
+import SeoSettingsPage from '@/pages/seo/SeoSettingsPage';
 
 // ── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -120,6 +122,9 @@ export default function App() {
           <Route path="products/:id/edit" element={<ProductForm />} />
           {/* ── Departures ── */}
           <Route path="departures" element={<DeparturesPage />} />
+          {/* ── SEO Command Center ── */}
+          <Route path="seo" element={<SeoDashboardPage />} />
+          <Route path="seo/settings" element={<RoleGuard allow={['super_admin', 'website_manager']}><SeoSettingsPage /></RoleGuard>} />
           <Route path="settings" element={<RoleGuard allow={['super_admin']}><SettingsPage /></RoleGuard>} />
           <Route path="team" element={<RoleGuard allow={['super_admin']}><TeamRolesPage /></RoleGuard>} />
           <Route path="*" element={<Navigate to="/" replace />} />

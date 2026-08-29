@@ -6,6 +6,7 @@ import {
   ExternalLink, Wrench, CalendarDays, Navigation, Car,
   Building2, ShoppingBag, TrendingUp, Tag, Compass, BarChart3,
   Shield, PackageOpen, Map, Leaf, GraduationCap, Zap, Wallet,
+  Search, Sliders,
   type LucideIcon,
 } from 'lucide-react';
 import { useRole, type AdminRole } from '@/context/RoleContext';
@@ -67,6 +68,11 @@ const FINANCE_ITEMS: NavDef[] = [
   { label: 'Coupons',          icon: Tag,        to: '/coupons' },
   { label: 'Reports',          icon: BarChart3,  to: '/reports' },
   { label: 'Email Templates',  icon: Mail,       to: '/email-templates' },
+];
+
+const SEO_ITEMS: NavDef[] = [
+  { label: 'SEO Dashboard', icon: Search,  to: '/seo' },
+  { label: 'SEO Settings',  icon: Sliders, to: '/seo/settings' },
 ];
 
 const SYSTEM_ITEMS: NavDef[] = [
@@ -198,7 +204,15 @@ export default function Sidebar() {
           </>
         )}
 
-        {/* ── 2. SALES ──────────────────────────────────────────────── */}
+        {/* ── 2. SEO ────────────────────────────────────────────────── */}
+        {canWeb && (
+          <>
+            <DeptHeader label="SEO" deptKey="seo" open={isOpen('seo')} onToggle={toggleDept} color="#34D399" />
+            {isOpen('seo') && SEO_ITEMS.map(item => <SidebarNavItem key={item.to} {...item} />)}
+          </>
+        )}
+
+        {/* ── 4. SALES ──────────────────────────────────────────────── */}
         {canSales && (
           <>
             <DeptHeader label="Sales" deptKey="sales" open={isOpen('sales')} onToggle={toggleDept} color="#F97316" />
@@ -206,7 +220,7 @@ export default function Sidebar() {
           </>
         )}
 
-        {/* ── 3. BOOKINGS ────────────────────────────────────────────── */}
+        {/* ── 5. BOOKINGS ────────────────────────────────────────────── */}
         {canBooking && (
           <>
             <DeptHeader label="Bookings" deptKey="bookings" open={isOpen('bookings')} onToggle={toggleDept} color="#A78BFA" />
@@ -214,7 +228,7 @@ export default function Sidebar() {
           </>
         )}
 
-        {/* ── 4. OPERATIONS ─────────────────────────────────────────── */}
+        {/* ── 6. OPERATIONS ─────────────────────────────────────────── */}
         {canOps && (
           <>
             <DeptHeader label="Operations" deptKey="ops" open={isOpen('ops')} onToggle={toggleDept} color="#10B981" />
@@ -222,7 +236,7 @@ export default function Sidebar() {
           </>
         )}
 
-        {/* ── 5. FINANCE ────────────────────────────────────────────── */}
+        {/* ── 7. FINANCE ────────────────────────────────────────────── */}
         {canFinance && (
           <>
             <DeptHeader label="Finance" deptKey="finance" open={isOpen('finance')} onToggle={toggleDept} color="#C9A96E" />
@@ -230,7 +244,7 @@ export default function Sidebar() {
           </>
         )}
 
-        {/* ── 6. SYSTEM ─────────────────────────────────────────────── */}
+        {/* ── 8. SYSTEM ─────────────────────────────────────────────── */}
         {canSystem && (
           <>
             <DeptHeader label="System" deptKey="system" open={isOpen('system')} onToggle={toggleDept} color="#94A3B8" />
