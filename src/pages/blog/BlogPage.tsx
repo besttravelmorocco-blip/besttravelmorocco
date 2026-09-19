@@ -4,24 +4,17 @@ import type { BlogPost, ContentStatus } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Search, Plus, Edit2, Trash2, Eye, Star, RefreshCw, AlertCircle, X, Loader2, Globe, FileText, Upload } from 'lucide-react';
 
-const STORAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1`;
-const STORAGE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-
+// Storage access goes through the signed-in user's own session (RLS on
+// storage.objects already grants `authenticated` full CRUD on this bucket).
+// Never build Storage requests from a raw service-role key here: any
+// VITE_-prefixed env var is compiled into the browser bundle and shipped to
+// every visitor.
 async function uploadBlogImage(file: File): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
   const name = `blog_${Date.now()}.${ext}`;
-  const res = await fetch(`${STORAGE_URL}/object/images/${encodeURIComponent(name)}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${STORAGE_KEY}`,
-      apikey: STORAGE_KEY,
-      'Content-Type': file.type,
-      'x-upsert': 'true',
-    },
-    body: file,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return `${STORAGE_URL}/object/public/images/${encodeURIComponent(name)}`;
+  const { error } = await supabase.storage.from('images').upload(name, file, { upsert: true });
+  if (error) throw error;
+  return supabase.storage.from('images').getPublicUrl(name).data.publicUrl;
 }
 
 const CATEGORIES = ['Travel Guide', 'Experiences', 'Culture', 'Food & Drink', 'Tips', 'Destinations', 'News'];
