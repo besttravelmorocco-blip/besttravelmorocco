@@ -44,3 +44,23 @@ coverage/
 .nyc_output/
 .vercel
 backup/
+
+# Supabase
+.supabase/
+
+# Next.js
+.next/
+out/
+
+# Scripts output / temp files
+*.sh.log
+import-results*.json
+migration-results*.json
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Secrets / keys
+*.pem
+*.key
