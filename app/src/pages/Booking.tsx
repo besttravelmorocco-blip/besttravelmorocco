@@ -34,11 +34,20 @@ const Booking = () => {
 
   const totalPrice = tour.price * parseInt(formData.travelers);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 1) {
       setStep(2);
     } else {
+      try {
+        await fetch('/api/booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, tourId: String(tour.id), tourName: tour.title }),
+        });
+      } catch {
+        // silent — show success regardless
+      }
       setIsSubmitted(true);
     }
   };

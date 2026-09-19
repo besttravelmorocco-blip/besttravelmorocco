@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, ArrowRight, Search } from 'lucide-react';
 import { blogPosts } from '../data/content';
@@ -19,8 +20,31 @@ const Blog = () => {
   const featuredPost = blogPosts[0];
   const otherPosts = filteredPosts.filter(p => p.id !== featuredPost.id);
 
-  return (
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.besttravelmorocco.com" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.besttravelmorocco.com/blog" }
+    ]
+  };
+
+    return (
     <div className="min-h-screen bg-white pt-32 pb-20">
+      <Helmet>
+        <title>Morocco Travel Blog — Tips, Guides & Destination Inspiration | Best Travel Morocco</title>
+        <meta name="description" content="Explore our Morocco travel blog: insider tips, destination guides, culture & adventure stories. Plan the perfect Morocco trip with expert advice from Best Travel Morocco." />
+        <meta name="keywords" content="Morocco travel blog, Morocco travel tips, Morocco destinations, Marrakech guide, Sahara travel guide, Morocco culture" />
+        <link rel="canonical" href="https://www.besttravelmorocco.com/blog" />
+        <meta property="og:title" content="Morocco Travel Blog | Best Travel Morocco" />
+        <meta property="og:description" content="Insider tips, destination guides & adventure stories from Morocco's premier tour company." />
+        <meta property="og:url" content="https://www.besttravelmorocco.com/blog" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://www.besttravelmorocco.com/images/hero-bg.jpg" />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+      </Helmet>
       {/* Header */}
       <div className="container-custom mb-12">
         <span className="section-subtitle">Travel Blog</span>

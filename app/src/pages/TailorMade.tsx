@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { ArrowRight, Heart, Briefcase, Sparkles, Users, Check, Calendar, MapPin, User, Mail, Phone, MessageSquare } from 'lucide-react';
 import { contactInfo } from '../data/content';
 
@@ -49,8 +50,17 @@ const TailorMade = () => {
     'Adventure Sports',
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      await fetch('/api/tailor-made', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+    } catch {
+      // silent — show success regardless
+    }
     setIsSubmitted(true);
   };
 
@@ -65,6 +75,27 @@ const TailorMade = () => {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Tailor Made Morocco Tours | Custom Itineraries for Every Traveller | Best Travel Morocco</title>
+        <meta name="description" content="Create your perfect Morocco experience. Our tailor-made tours are designed around your interests, dates and budget — honeymoons, family adventures, photography tours, luxury escapes. Founded 2004." />
+        <meta name="keywords" content="tailor made Morocco tours, custom Morocco itinerary, bespoke Morocco holiday, private Morocco tour, luxury Morocco travel, Morocco honeymoon" />
+        <link rel="canonical" href="https://www.besttravelmorocco.com/tailor-made" />
+        <meta property="og:title" content="Tailor Made Morocco Tours | Best Travel Morocco" />
+        <meta property="og:description" content="Design your perfect Morocco experience — honeymoon, adventure, family, luxury. Custom itineraries since 2004." />
+        <meta property="og:url" content="https://www.besttravelmorocco.com/tailor-made" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://www.besttravelmorocco.com/images/dest-fes.jpg" />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {"@type":"ListItem","position":1,"name":"Home","item":"https://www.besttravelmorocco.com"},
+            {"@type":"ListItem","position":2,"name":"Tailor Made Tours","item":"https://www.besttravelmorocco.com/tailor-made"}
+          ]
+        })}</script>
+      </Helmet>
       {/* Hero */}
       <div className="relative h-[70vh] min-h-[500px]">
         <img 

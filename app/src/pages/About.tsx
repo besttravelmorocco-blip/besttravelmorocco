@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Award, Users, Globe, Heart, Check, Star } from 'lucide-react';
 import { teamMembers, testimonials } from '../data/content';
@@ -59,8 +60,44 @@ const About = () => {
     },
   ];
 
+  const aboutSchema = {
+    "@context": "https://schema.org",
+    "@type": "TravelAgency",
+    "name": "Best Travel Morocco",
+    "description": "Founded in 2004, Best Travel Morocco has welcomed over 20,000 guests. We craft bespoke Morocco tours and travel packages that take you off the beaten track.",
+    "foundingDate": "2004",
+    "url": "https://www.besttravelmorocco.com",
+    "logo": "https://www.besttravelmorocco.com/images/logo-icon.png",
+    "telephone": "+212677365421",
+    "email": "hello@besttravelmorocco.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Casablanca",
+      "addressCountry": "MA"
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "Morocco"
+    },
+    "knowsAbout": ["Morocco Tours", "Sahara Desert Tours", "Atlas Mountains Trekking", "Imperial Cities Tours", "Cultural Tourism Morocco"]
+  };
+
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>About Best Travel Morocco | Founded 2004 — Over 20,000 Happy Guests</title>
+        <meta name="description" content="Best Travel Morocco has been crafting bespoke Morocco tours since 2004. Over 20,000 guests from around the world have discovered Morocco with our passionate local team." />
+        <meta name="keywords" content="about Best Travel Morocco, Morocco tour company, Morocco travel agency, Marrakech tour operator, local Morocco guides" />
+        <link rel="canonical" href="https://www.besttravelmorocco.com/about" />
+        <meta property="og:title" content="About Best Travel Morocco | Founded 2004" />
+        <meta property="og:description" content="Founded in 2004, we have welcomed over 20,000 guests from around the world on bespoke Morocco tours." />
+        <meta property="og:url" content="https://www.besttravelmorocco.com/about" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://www.besttravelmorocco.com/images/about-group.jpg" />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify(aboutSchema)}</script>
+      </Helmet>
       {/* Hero */}
       <section 
         id="hero"

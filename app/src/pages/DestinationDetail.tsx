@@ -216,11 +216,27 @@ const DestinationDetail = () => {
     <div className="min-h-screen bg-[#f6f6f6]">
       {/* SEO Meta Tags */}
       <Helmet>
-        <title>{destination.name} Travel Guide | Things to Do, Tours & Tips | Best of Morocco</title>
-        <meta name="description" content={`Discover ${destination.name}, ${destination.tagline}. Explore top attractions, best tours, travel tips, and things to do in this magical Moroccan destination.`} />
-        <meta name="keywords" content={`${destination.name} Morocco, ${destination.name} travel guide, ${destination.name} tours, things to do in ${destination.name}`} />
+        <title>{`${destination.name} Travel Guide 2025 — Tours, Tips & Things to Do | Best Travel Morocco`}</title>
+        <meta name="description" content={`Discover ${destination.name}: ${destination.tagline}. Explore top attractions, best tours, travel tips and what to do in this magical Moroccan destination. Expert guides since 2004.`} />
+        <meta name="keywords" content={`${destination.name} Morocco, ${destination.name} travel guide, ${destination.name} tours 2025, things to do in ${destination.name}, ${destination.name} tips`} />
         <link rel="canonical" href={`https://www.besttravelmorocco.com/destinations/${destination.slug}`} />
+        <meta property="og:title" content={`${destination.name} Travel Guide | Best Travel Morocco`} />
+        <meta property="og:description" content={`${destination.tagline}. Expert tours & travel guides for ${destination.name}, Morocco.`} />
+        <meta property="og:url" content={`https://www.besttravelmorocco.com/destinations/${destination.slug}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:image" content={`https://www.besttravelmorocco.com${destination.image}`} />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        <meta name="twitter:card" content="summary_large_image" />
         <script type="application/ld+json">{JSON.stringify(destinationSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {"@type":"ListItem","position":1,"name":"Home","item":"https://www.besttravelmorocco.com"},
+            {"@type":"ListItem","position":2,"name":"Destinations","item":"https://www.besttravelmorocco.com/destinations"},
+            {"@type":"ListItem","position":3,"name":destination.name,"item":`https://www.besttravelmorocco.com/destinations/${destination.slug}`}
+          ]
+        })}</script>
       </Helmet>
 
       {/* Hero - Enhanced */}

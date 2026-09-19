@@ -252,10 +252,28 @@ const Tours = () => {
     <div className="min-h-screen bg-[#f6f6f6]">
       {/* SEO Meta Tags */}
       <Helmet>
-        <title>All Morocco Tours | Desert, Imperial Cities, Day Trips | Best of Morocco</title>
-        <meta name="description" content="Browse 30+ Morocco tours: Sahara desert tours, imperial cities, day trips from Marrakech/Fes, adventure activities. Send an enquiry for your Morocco adventure!" />
-        <meta name="keywords" content="Morocco tours, Sahara desert tours, Marrakech day trips, Fes tours, imperial cities Morocco, Morocco travel packages" />
+        <title>Morocco Tours 2025 — Desert, Imperial Cities & Day Trips | Best Travel Morocco</title>
+        <meta name="description" content="Browse 30+ handpicked Morocco tours: Sahara desert camel treks, 3–10 day imperial city circuits, Marrakech & Fes day trips. From $65. Founded 2004 — 20,000+ happy guests." />
+        <meta name="keywords" content="Morocco tours 2025, Sahara desert tours, Marrakech day trips, Fes tours, imperial cities Morocco, Morocco travel packages, camel trek Morocco" />
         <link rel="canonical" href="https://www.besttravelmorocco.com/tours" />
+        <meta property="og:title" content="Morocco Tours 2025 — Desert, Imperial Cities & Day Trips | Best Travel Morocco" />
+        <meta property="og:description" content="Browse 30+ handpicked Morocco tours. Sahara desert camel treks, imperial city circuits, day trips from Marrakech & Fes. Founded 2004 — 20,000+ happy guests." />
+        <meta property="og:url" content="https://www.besttravelmorocco.com/tours" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://www.besttravelmorocco.com/images/hero-bg.jpg" />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Morocco Tours 2025 | Best Travel Morocco" />
+        <meta name="twitter:description" content="Browse 30+ handpicked Morocco tours — desert, imperial cities, day trips. Founded 2004." />
+        <meta name="twitter:image" content="https://www.besttravelmorocco.com/images/hero-bg.jpg" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.besttravelmorocco.com" },
+            { "@type": "ListItem", "position": 2, "name": "Tours", "item": "https://www.besttravelmorocco.com/tours" }
+          ]
+        })}</script>
       </Helmet>
 
       {/* Hero Header - Enhanced */}

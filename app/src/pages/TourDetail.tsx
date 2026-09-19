@@ -172,53 +172,112 @@ const TourDetail = () => {
     setCurrentImageIndex((prev) => (prev - 1 + tour.gallery.length) % tour.gallery.length);
   };
 
-  // Schema.org structured data
+  // Schema.org structured data — comprehensive multi-schema for rich results
+  const durationISO = `P${tour.durationDays}D`;
+  const absoluteImage = tour.image.startsWith('http') ? tour.image : `https://www.besttravelmorocco.com${tour.image}`;
+
   const tourSchema = {
     "@context": "https://schema.org",
-    "@type": "TouristAttraction",
+    "@type": "TouristTrip",
     "name": tour.title,
     "description": tour.description,
-    "image": tour.image,
+    "image": absoluteImage,
     "url": `https://www.besttravelmorocco.com/tours/${tour.slug}`,
+    "touristType": ["Leisure", "Adventure", "Cultural"],
+    "itinerary": {
+      "@type": "ItemList",
+      "itemListElement": tour.itinerary.map((day, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "name": day.title,
+        "description": day.description
+      }))
+    },
+    "provider": {
+      "@type": "TravelAgency",
+      "name": "Best Travel Morocco",
+      "url": "https://www.besttravelmorocco.com",
+      "telephone": "+212677365421",
+      "email": "hello@besttravelmorocco.com"
+    },
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": tour.rating,
-      "reviewCount": 5
+      "reviewCount": tour.reviews,
+      "bestRating": "5",
+      "worstRating": "1"
     },
-    "offers": {
+    "offers": tour.priceEnabled ? {
       "@type": "Offer",
-      "price": "0",
+      "price": tour.price.toString(),
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock",
-      "description": "Contact us for pricing"
+      "url": `https://www.besttravelmorocco.com/tours/${tour.slug}`,
+      "validFrom": "2024-01-01"
+    } : {
+      "@type": "Offer",
+      "availability": "https://schema.org/InStock",
+      "description": "Contact us for custom pricing",
+      "url": `https://www.besttravelmorocco.com/tours/${tour.slug}`
     },
-    "touristType": "Leisure, Adventure, Cultural",
+    "duration": durationISO,
+    "inLanguage": "en",
     "areaServed": {
       "@type": "Country",
       "name": "Morocco"
     }
   };
 
+  const faqSchema = tour.faq && tour.faq.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": tour.faq.map(item => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer
+      }
+    }))
+  } : null;
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.besttravelmorocco.com" },
+      { "@type": "ListItem", "position": 2, "name": "Tours", "item": "https://www.besttravelmorocco.com/tours" },
+      { "@type": "ListItem", "position": 3, "name": tour.title, "item": `https://www.besttravelmorocco.com/tours/${tour.slug}` }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-[#f6f6f6]">
       {/* SEO Meta Tags */}
       <Helmet>
-        <title>{tour.seoTitle || `${tour.title} | Best of Morocco`}</title>
+        <title>{tour.seoTitle || `${tour.title} | Best Travel Morocco`}</title>
         <meta name="description" content={tour.seoDescription || tour.shortDescription} />
-        <meta name="keywords" content={tour.keywords?.join(', ') || 'Morocco tours, ' + tour.category} />
+        <meta name="keywords" content={tour.keywords?.join(', ') || `Morocco tours, ${tour.category}, Best Travel Morocco`} />
         <link rel="canonical" href={`https://www.besttravelmorocco.com/tours/${tour.slug}`} />
         
         {/* Open Graph */}
-        <meta property="og:title" content={tour.title} />
-        <meta property="og:description" content={tour.shortDescription} />
+        <meta property="og:title" content={`${tour.title} | Best Travel Morocco`} />
+        <meta property="og:description" content={tour.seoDescription || tour.shortDescription} />
         <meta property="og:type" content="product" />
         <meta property="og:url" content={`https://www.besttravelmorocco.com/tours/${tour.slug}`} />
-        <meta property="og:image" content={tour.image} />
+        <meta property="og:image" content={absoluteImage} />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${tour.title} | Best Travel Morocco`} />
+        <meta name="twitter:description" content={tour.seoDescription || tour.shortDescription} />
+        <meta name="twitter:image" content={absoluteImage} />
         
         {/* Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify(tourSchema)}
-        </script>
+        <script type="application/ld+json">{JSON.stringify(tourSchema)}</script>
+        {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
       {/* Hero Section */}

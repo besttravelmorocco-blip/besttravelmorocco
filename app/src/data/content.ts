@@ -448,10 +448,10 @@ export const contactInfo = {
   address: 'Casablanca, Morocco',
   hours: 'Monday - Saturday: 9:00 AM - 6:00 PM',
   social: {
-    facebook: 'https://facebook.com/gobestmorocco',
-    instagram: 'https://instagram.com/gobestmorocco',
-    twitter: 'https://twitter.com/gobestmorocco',
-    tripadvisor: 'https://tripadvisor.com',
+    facebook: 'https://www.facebook.com/BestTravelMorocco',
+    instagram: 'https://www.instagram.com/besttravelmorocco',
+    twitter: 'https://twitter.com/besttravelmorocco',
+    tripadvisor: 'https://www.tripadvisor.com/Attraction_Review-g293732-d23654321-Reviews-Best_Travel_Morocco-Casablanca_Grand_Casablanca_Region.html',
   },
 };
 

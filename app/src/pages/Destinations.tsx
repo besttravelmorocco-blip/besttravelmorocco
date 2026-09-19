@@ -57,10 +57,25 @@ const Destinations = () => {
     <div className="min-h-screen bg-[#f6f6f6]">
       {/* SEO Meta Tags */}
       <Helmet>
-        <title>Morocco Destinations | Marrakech, Sahara, Chefchaouen | Best of Morocco</title>
-        <meta name="description" content="Explore Morocco's most captivating destinations. From the red city of Marrakech to the blue streets of Chefchaouen and the golden Sahara dunes." />
-        <meta name="keywords" content="Morocco destinations, Marrakech travel, Sahara Desert, Chefchaouen, Fes, Casablanca, Essaouira" />
+        <title>Morocco Destinations — Marrakech, Sahara, Chefchaouen & More | Best Travel Morocco</title>
+        <meta name="description" content="Explore Morocco's most captivating destinations: the red city of Marrakech, the blue streets of Chefchaouen, golden Sahara dunes, ancient Fes medina, and coastal Essaouira." />
+        <meta name="keywords" content="Morocco destinations, Marrakech travel guide, Sahara Desert Morocco, Chefchaouen blue city, Fes ancient city, Casablanca, Essaouira Atlantic coast" />
         <link rel="canonical" href="https://www.besttravelmorocco.com/destinations" />
+        <meta property="og:title" content="Morocco Destinations | Best Travel Morocco" />
+        <meta property="og:description" content="Discover Marrakech, Sahara, Chefchaouen, Fes, Essaouira and more — explore Morocco's most captivating destinations." />
+        <meta property="og:url" content="https://www.besttravelmorocco.com/destinations" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://www.besttravelmorocco.com/images/dest-marrakech.jpg" />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {"@type":"ListItem","position":1,"name":"Home","item":"https://www.besttravelmorocco.com"},
+            {"@type":"ListItem","position":2,"name":"Destinations","item":"https://www.besttravelmorocco.com/destinations"}
+          ]
+        })}</script>
       </Helmet>
 
       {/* Hero Header - Enhanced */}

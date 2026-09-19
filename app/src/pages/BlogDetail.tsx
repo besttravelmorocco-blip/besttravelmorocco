@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Calendar, Clock, ArrowLeft, Share2, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { blogPosts } from '../data/content';
 
@@ -20,8 +21,54 @@ const BlogDetail = () => {
 
   const relatedPosts = blogPosts.filter(p => p.id !== post.id && p.category === post.category).slice(0, 3);
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": post.excerpt,
+    "image": `https://www.besttravelmorocco.com${post.image}`,
+    "url": `https://www.besttravelmorocco.com/blog/${post.slug}`,
+    "datePublished": post.date,
+    "author": {
+      "@type": "Person",
+      "name": post.author,
+      "worksFor": {
+        "@type": "TravelAgency",
+        "name": "Best Travel Morocco",
+        "url": "https://www.besttravelmorocco.com"
+      }
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Best Travel Morocco",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.besttravelmorocco.com/images/logo-icon.png"
+      }
+    },
+    "mainEntityOfPage": `https://www.besttravelmorocco.com/blog/${post.slug}`,
+    "articleSection": post.category
+  };
+
   return (
     <div className="min-h-screen bg-white pt-32 pb-20">
+      <Helmet>
+        <title>{post.title} | Best Travel Morocco Blog</title>
+        <meta name="description" content={post.excerpt} />
+        <meta name="keywords" content={`${post.category}, Morocco travel, Best Travel Morocco, ${post.title}`} />
+        <link rel="canonical" href={`https://www.besttravelmorocco.com/blog/${post.slug}`} />
+        <meta property="og:title" content={`${post.title} | Best Travel Morocco`} />
+        <meta property="og:description" content={post.excerpt} />
+        <meta property="og:url" content={`https://www.besttravelmorocco.com/blog/${post.slug}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:image" content={`https://www.besttravelmorocco.com${post.image}`} />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        <meta property="article:author" content={post.author} />
+        <meta property="article:published_time" content={post.date} />
+        <meta property="article:section" content={post.category} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+      </Helmet>
       {/* Back Link */}
       <div className="container-custom mb-8">
         <Link to="/blog" className="flex items-center gap-2 text-[#3c3c3c] hover:text-[#C9A96E] transition-colors">

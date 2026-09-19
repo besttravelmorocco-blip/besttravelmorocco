@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { MapPin, Phone, Mail, Clock, Send, Check } from 'lucide-react';
 import { contactInfo, faqData } from '../data/content';
 
@@ -61,8 +62,70 @@ const Contact = () => {
     }
   };
 
+  const contactSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": "https://www.besttravelmorocco.com/#business",
+    "name": "Best Travel Morocco",
+    "image": "https://www.besttravelmorocco.com/images/hero-bg.jpg",
+    "url": "https://www.besttravelmorocco.com",
+    "telephone": "+212677365421",
+    "email": "hello@besttravelmorocco.com",
+    "priceRange": "$$",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Casablanca",
+      "addressCountry": "MA"
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+        "opens": "09:00",
+        "closes": "18:00"
+      }
+    ]
+  };
+
+  const faqContactSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqData.map(item => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer
+      }
+    }))
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.besttravelmorocco.com" },
+      { "@type": "ListItem", "position": 2, "name": "Contact", "item": "https://www.besttravelmorocco.com/contact" }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-white pt-32 pb-20">
+      <Helmet>
+        <title>Contact Best Travel Morocco | Get Your Free Custom Quote</title>
+        <meta name="description" content="Contact Best Travel Morocco for your bespoke Morocco tour. We reply within 24 hours. Call +212 677 365 421 or email hello@besttravelmorocco.com. Open Mon–Sat 9am–6pm." />
+        <meta name="keywords" content="contact Best Travel Morocco, Morocco tour inquiry, book Morocco tour, Morocco travel quote, Marrakech tour booking" />
+        <link rel="canonical" href="https://www.besttravelmorocco.com/contact" />
+        <meta property="og:title" content="Contact Best Travel Morocco | Free Quote" />
+        <meta property="og:description" content="Get in touch for your custom Morocco tour. We reply within 24 hours." />
+        <meta property="og:url" content="https://www.besttravelmorocco.com/contact" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Best Travel Morocco" />
+        <meta name="twitter:card" content="summary" />
+        <script type="application/ld+json">{JSON.stringify(contactSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(faqContactSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+      </Helmet>
       {/* Header */}
       <div className="container-custom mb-12">
         <span className="section-subtitle">Get in Touch</span>

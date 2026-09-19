@@ -230,9 +230,17 @@ const Home = () => {
             },
             "priceRange": "$$",
             "sameAs": [
-              "https://www.facebook.com/gobestmorocco",
-              "https://www.instagram.com/gobestmorocco"
-            ]
+              "https://www.facebook.com/BestTravelMorocco",
+              "https://www.instagram.com/besttravelmorocco",
+              "https://twitter.com/besttravelmorocco"
+            ],
+            "numberOfEmployees": { "@type": "QuantitativeValue", "value": 20 },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+212677365421",
+              "contactType": "customer service",
+              "availableLanguage": ["English", "French", "Arabic", "Spanish"]
+            }
           })}
         </script>
       </Helmet>
