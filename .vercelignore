@@ -1,0 +1,49 @@
+# Backups — local database snapshots, never deploy
+backups/
+
+# Separate public-site React project (has its own Vercel project)
+app/
+
+# Backend API server — not imported by admin frontend, not in vercel.json
+api/
+
+# Backend shared contracts — not imported by admin src/
+contracts/
+
+# Drizzle ORM schema and migrations — backend only
+db/
+
+# Local utility and migration scripts
+scripts/
+migration/
+
+# SQL migration files
+*.sql
+
+# Old build artifacts at repository root
+assets/
+
+# Previous build output — Vercel builds fresh from source
+dist/
+
+# Developer documentation
+API_TEST.md
+BACKUP_CONFIRMED.md
+PRICING_TESTS.md
+SYSTEM_AUDIT.md
+
+# Local test runner
+run-test-batch.sh
+
+# Formatter config — not needed at runtime
+.prettierrc
+.prettierignore
+
+# Docker config — not applicable to Vercel deployment
+.dockerignore
+
+# Vercel backend features stub — project uses Supabase directly
+.backend-features.json
+
+# Example secrets file
+.env.example

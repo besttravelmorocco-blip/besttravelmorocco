@@ -1,12 +1,16 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Image, Upload, Search, Trash2, Copy, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
-const BASE = 'https://uxkfqxistjvtofskqtwy.supabase.co/storage/v1';
-const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4a2ZxeGlzdGp2dG9mc2txdHd5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTQ1MjI3MSwiZXhwIjoyMDk1MDI4MjcxfQ.rxGrWajWcJUt71bHr2fQJ4o9nLpHlhVLhFVl0W3CnGI';
+// Storage access goes through the signed-in user's own session (RLS on
+// storage.objects already grants `authenticated` full CRUD on this bucket —
+// see auth_insert_images / auth_update_images / auth_delete_images / auth_read_images).
+// Never build Storage requests from a raw service-role key here: any
+// VITE_-prefixed env var is compiled into the browser bundle and shipped to
+// every visitor, which would hand out full storage.objects (and, if ever
+// reused elsewhere, full RLS-bypass) access to anyone who inspects it.
 const BUCKET = 'images';
-const PUBLIC  = `${BASE}/object/public/${BUCKET}`;
-const headers = { Authorization: `Bearer ${KEY}`, apikey: KEY };
 
 type MediaFile = { name: string; url: string; size: number };
 
@@ -17,35 +21,29 @@ function fmt(n: number) {
 }
 
 async function listFiles(): Promise<MediaFile[]> {
-  const res = await fetch(`${BASE}/object/list/${BUCKET}`, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prefix: '', limit: 1000, sortBy: { column: 'created_at', order: 'desc' } }),
+  const { data, error } = await supabase.storage.from(BUCKET).list('', {
+    limit: 1000,
+    sortBy: { column: 'created_at', order: 'desc' },
   });
-  if (!res.ok) throw new Error(await res.text());
-  const data: any[] = await res.json();
-  return data
+  if (error) throw error;
+  return (data ?? [])
     .filter(f => f.name && !f.name.endsWith('/'))
-    .map(f => ({ name: f.name, url: `${PUBLIC}/${f.name}`, size: f.metadata?.size ?? 0 }));
+    .map(f => ({
+      name: f.name,
+      url: supabase.storage.from(BUCKET).getPublicUrl(f.name).data.publicUrl,
+      size: f.metadata?.size ?? 0,
+    }));
 }
 
 async function uploadFile(file: File): Promise<void> {
   const name = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const res = await fetch(`${BASE}/object/${BUCKET}/${encodeURIComponent(name)}`, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': file.type, 'x-upsert': 'true' },
-    body: file,
-  });
-  if (!res.ok) throw new Error(await res.text());
+  const { error } = await supabase.storage.from(BUCKET).upload(name, file, { upsert: true });
+  if (error) throw error;
 }
 
 async function deleteFile(name: string): Promise<void> {
-  const res = await fetch(`${BASE}/object/${BUCKET}`, {
-    method: 'DELETE',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prefixes: [name] }),
-  });
-  if (!res.ok) throw new Error(await res.text());
+  const { error } = await supabase.storage.from(BUCKET).remove([name]);
+  if (error) throw error;
 }
 
 export default function MediaPage() {

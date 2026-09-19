@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? 'https://uxkfqxistjvtofskqtwy.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4a2ZxeGlzdGp2dG9mc2txdHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTIyNzEsImV4cCI6MjA5NTAyODI3MX0.iixXusModII-3K-RRGRtUpvukY2V4Zxy3ZYZiyhTXmI';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error(
+    'Missing required environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set.'
+  );
+}
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -23,6 +29,7 @@ export interface Tour {
   id: string;
   title: string;
   subtitle: string;         // e.g. "3 DAYS"
+  hero_subtitle: string | null;
   description: string;
   days: number;
   from_city: string;
@@ -32,11 +39,72 @@ export interface Tour {
   itinerary: string;        // JSON string of ItineraryDay[]
   included: string;         // JSON string of string[]
   highlights: string;       // JSON string of string[]
+  not_included: string;     // JSON string of string[]
+  seo_title: string;
+  seo_description: string;
+  category: string;
+  popular: boolean;
+  departure_city: string | null;
   status: TourStatus;
   featured: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
+}
+
+// tour_faqs table
+export interface TourFaq {
+  id: string;
+  tour_id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  enabled: boolean;
+  created_at: string;
+}
+
+// faqs table (general site FAQs)
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  page: string;
+  sort_order: number;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// homepage_sections table
+export interface HomepageSection {
+  id: string;
+  section_type: string;
+  label: string;
+  sort_order: number;
+  is_visible: boolean;
+  config: Record<string, unknown>;
+  updated_at: string;
+}
+
+// nav_menus table
+export interface NavMenu {
+  id: string;
+  handle: string;
+  label: string | null;
+}
+
+// nav_items table
+export interface NavItem {
+  id: string;
+  menu_id: string;
+  parent_id: string | null;
+  label: string;
+  href: string | null;
+  tour_id: string | null;
+  sort_order: number;
+  is_visible: boolean;
+  opens_new_tab: boolean;
 }
 
 // destinations table
@@ -51,6 +119,21 @@ export interface Destination {
   coords: string;
   featured: boolean;
   sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// destination_highlights table
+export interface DestinationHighlight {
+  id: string;
+  destination_id: string;
+  category: string;
+  title: string;
+  description: string | null;
+  image: string | null;
+  image_alt: string | null;
+  display_order: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -73,19 +156,35 @@ export interface BlogPost {
 
 // inquiries table
 export interface Inquiry {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone: string | null;
   tour_id: string | null;
   tour_name: string | null;
+  subject: string | null;
   message: string | null;
   travel_date: string | null;
   travelers: number | null;
+  adults: number | null;
+  children: number | null;
+  country: string | null;
+  source: string | null;
+  whatsapp_ok: boolean | null;
+  agreed_terms: boolean | null;
+  reference_number: string | null;
   status: InquiryStatus;
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// blocked_emails table
+export interface BlockedEmail {
+  id: number;
+  email: string;
+  reason: string | null;
+  blocked_at: string;
 }
 
 // testimonials table
@@ -100,6 +199,525 @@ export interface Testimonial {
   featured: boolean;
   created_at: string;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOOKING SYSTEM TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type BookingStatus =
+  | 'enquiry'
+  | 'pending_review'
+  | 'confirmed'
+  | 'deposit_paid'
+  | 'active'
+  | 'completed'
+  | 'rejected'
+  | 'cancelled';
+export type PaymentMethod = 'paypal' | 'stripe' | 'wise' | 'cash' | 'bank_transfer';
+export type StaffRole = 'driver' | 'guide_fes' | 'guide_marrakech' | 'guide_volubilis' | 'guide_general' | 'manager';
+export type PaymentType = 'deposit' | 'balance' | 'extra' | 'refund';
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  nationality: string | null;
+  hotel: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: StaffRole;
+  phone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  photo_url: string | null;
+  languages: string[];
+  available: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ItineraryDayOverride {
+  day: number;
+  title: string;
+  description: string;
+  accommodation?: string;
+}
+
+export interface OpBooking {
+  id: string;
+  reference: string;
+  client_id: string | null;
+  client_name: string;
+  client_email: string | null;
+  client_phone: string | null;
+  client_whatsapp: string | null;
+  client_nationality: string | null;
+  client_hotel: string | null;
+  tour_id: string | null;
+  tour_name: string;
+  start_date: string | null;
+  end_date: string | null;
+  num_adults: number;
+  num_children: number;
+  pickup_location: string | null;
+  pickup_time: string | null;
+  driver_id: string | null;
+  guide_fes_id: string | null;
+  guide_marrakech_id: string | null;
+  guide_volubilis_id: string | null;
+  total_price: number | null;
+  currency: string;
+  deposit_amount: number | null;
+  deposit_method: PaymentMethod | null;
+  deposit_reference: string | null;
+  deposit_paid: boolean;
+  deposit_paid_date: string | null;
+  balance_paid: boolean;
+  balance_paid_date: string | null;
+  status: BookingStatus;
+  // Confirmation window fields (migration 008)
+  submitted_at: string | null;
+  review_deadline: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  confirmation_sent_at: string | null;
+  rejection_reason: string | null;
+  payment_link_sent_at: string | null;
+  payment_link_expires_at: string | null;
+  itinerary: ItineraryDayOverride[] | null;
+  internal_notes: string | null;
+  client_notes: string | null;
+  special_requirements: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OpPayment {
+  id: string;
+  booking_id: string;
+  amount: number;
+  currency: string;
+  type: PaymentType;
+  method: PaymentMethod;
+  reference: string | null;
+  paid_at: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+// Helpers
+export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
+  enquiry:        'Enquiry',
+  pending_review: 'Pending Review',
+  confirmed:      'Confirmed',
+  deposit_paid:   'Deposit Paid',
+  active:         'Active',
+  completed:      'Completed',
+  rejected:       'Rejected',
+  cancelled:      'Cancelled',
+};
+
+export const BOOKING_STATUS_COLORS: Record<BookingStatus, string> = {
+  enquiry:        'badge-gray',
+  pending_review: 'badge-yellow',
+  confirmed:      'badge-blue',
+  deposit_paid:   'badge-sand',
+  active:         'badge-green',
+  completed:      'badge-success',
+  rejected:       'badge-red',
+  cancelled:      'badge-error',
+};
+
+export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
+  driver: 'Driver',
+  guide_fes: 'Guide — Fes',
+  guide_marrakech: 'Guide — Marrakech',
+  guide_volubilis: 'Guide — Volubilis',
+  guide_general: 'Guide — General',
+  manager: 'Manager',
+};
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  paypal: 'PayPal',
+  stripe: 'Card (Stripe)',
+  wise: 'Wise Transfer',
+  cash: 'Cash',
+  bank_transfer: 'Bank Transfer',
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TOURISM OPERATING SYSTEM TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface Vehicle {
+  id: string;
+  type: string;
+  make: string | null;
+  model: string | null;
+  year: number | null;
+  license_plate: string | null;
+  capacity: number;
+  color: string | null;
+  fuel_type: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Unified 3-tier accommodation system ─────────────────────────────────────
+export type AccomTier = 'comfort' | 'premium' | 'signature_luxury';
+
+// Legacy aliases kept so existing imports compile without changes
+export type AccomCategory = AccomTier;
+export type PricingTier   = AccomTier;
+
+export const ACCOM_TIERS = ['comfort', 'premium', 'signature_luxury'] as const satisfies readonly AccomTier[];
+
+export const ACCOM_TIER_LABELS: Record<AccomTier, string> = {
+  comfort:          'Comfort',
+  premium:          'Premium',
+  signature_luxury: 'Signature Luxury',
+};
+
+export const ACCOM_TIER_COLORS: Record<AccomTier, string> = {
+  comfort:          '#60A5FA',
+  premium:          '#C9A96E',
+  signature_luxury: '#F59E0B',
+};
+
+export const ACCOM_TIER_DESC: Record<AccomTier, string> = {
+  comfort:          'Well-appointed riads and hotels — comfortable, authentic, great value.',
+  premium:          'Superior properties with enhanced amenities, refined design and attentive service.',
+  signature_luxury: 'Ultra-luxury venues with exceptional design, exclusive experiences and impeccable service.',
+};
+
+export interface Accommodation {
+  id: string;
+  destination: string;
+  category: AccomCategory;
+  type: string;
+  name: string;
+  city: string | null;
+  address: string | null;
+  stars: number | null;
+  tier: string;                       // legacy — kept for backward compat
+  description: string | null;
+  images: string[];
+  website: string | null;
+  contact_person: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  google_maps_link: string | null;
+  low_season_rate: number | null;
+  mid_season_rate: number | null;
+  contracted_single_rate: number | null;
+  peak_season_rate: number | null;
+  contracted_double_rate: number | null;
+  contracted_triple_rate: number | null;
+  double_room_rate: number | null;
+  family_room_rate: number | null;
+  extra_bed_rate: number | null;
+  child_policy: string | null;
+  capacity: number | null;
+  amenities: string[];
+  photo_url: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TourAccommodationAssignment {
+  id: string;
+  tour_id: string;
+  destination: string;
+  category: AccomCategory;
+  accommodation_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  accommodation?: Accommodation;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  type: string | null;
+  city: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  service_description: string | null;
+  contracted_rate: number | null;
+  currency: string;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Season {
+  id: string;
+  name: string;
+  color: string;
+  start_date: string;
+  end_date: string;
+  multiplier: number;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface PricingRule {
+  id: string;
+  tour_id: string;
+  season_id: string;
+  group_size_min: number;
+  group_size_max: number;
+  accommodation_tier: string;
+  price_per_person: number;
+  cost_per_person: number | null;
+  created_at: string;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string | null;
+  type: string;
+  value: number;
+  min_booking_value: number | null;
+  max_uses: number | null;
+  used_count: number;
+  valid_from: string | null;
+  valid_until: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CustomTourRequest {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  group_size: number;
+  preferred_start_date: string | null;
+  duration_days: number | null;
+  tour_id: string | null;
+  tour_name: string | null;
+  budget_per_person: number | null;
+  special_requirements: string | null;
+  source: string;
+  status: string;
+  assigned_to: string | null;
+  follow_up_date: string | null;
+  quoted_price: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  trigger: string;
+  subject: string;
+  body_html: string;
+  variables: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UNIFIED PRODUCT SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type ProductCategory =
+  | 'morocco_tour'
+  | 'student_trip'
+  | 'yoga_retreat'
+  | 'upcoming_tour'
+  | 'group_adventure'
+  | 'event'
+  | 'experience';
+
+export type BookingType = 'inquiry' | 'fixed_departure';
+
+export type ProductStatus = 'draft' | 'published' | 'archived';
+
+// products table — single source of truth for all tour/experience types
+export interface Product {
+  id: string;                      // slug for migrated tours; UUID for everything else
+  slug: string;
+  category: ProductCategory;
+  booking_type: BookingType;
+  title: string;
+  subtitle: string | null;
+  hero_subtitle: string | null;
+  description: string | null;
+  duration_days: number | null;
+  duration_nights: number | null;
+  from_city: string | null;
+  to_city: string | null;
+  departure_city: string | null;
+  price: string | null;            // display string "From €490"
+  price_amount: number | null;
+  starting_price: number | null;
+  deposit_percentage: number;
+  images: string[];
+  highlights: string[];
+  itinerary: ItineraryDay[];
+  included: string[];
+  not_included: string[];
+  min_group_size: number | null;
+  max_group_size: number | null;
+  capacity: number | null;
+  accommodation_level: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_keywords: string | null;
+  focus_keyword: string | null;
+  canonical_url: string | null;
+  og_title: string | null;
+  og_description: string | null;
+  og_image: string | null;
+  twitter_image: string | null;
+  robots_index: boolean;
+  robots_follow: boolean;
+  status: ProductStatus;
+  featured: boolean;
+  popular: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const PRODUCT_CATEGORIES = [
+  'morocco_tour', 'student_trip', 'yoga_retreat',
+  'upcoming_tour', 'group_adventure', 'event', 'experience',
+] as const satisfies readonly ProductCategory[];
+
+export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
+  morocco_tour:    'Morocco Tour',
+  student_trip:    'Student Trip',
+  yoga_retreat:    'Yoga Retreat',
+  upcoming_tour:   'Upcoming Tour',
+  group_adventure: 'Group Adventure',
+  event:           'Event',
+  experience:      'Experience',
+};
+
+export const PRODUCT_CATEGORY_COLORS: Record<ProductCategory, string> = {
+  morocco_tour:    '#C9A96E',
+  student_trip:    '#A78BFA',
+  yoga_retreat:    '#10B981',
+  upcoming_tour:   '#60A5FA',
+  group_adventure: '#F97316',
+  event:           '#EC4899',
+  experience:      '#06B6D4',
+};
+
+// ─── Departures table ─────────────────────────────────────────────────────────
+export type DepartureStatus = 'available' | 'guaranteed' | 'limited' | 'sold_out' | 'closed';
+
+export interface Departure {
+  id: string;
+  product_id: string;
+  departure_date: string;
+  return_date: string | null;
+  max_seats: number;
+  min_seats: number;
+  available_seats: number;
+  status: DepartureStatus;
+  deposit_amount: number | null;
+  deposit_percentage: number;
+  payment_link: string | null;
+  payment_instructions: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  product?: Product;    // joined when fetched with select('*, product:products(*)')
+}
+
+export const DEPARTURE_STATUS_LABELS: Record<DepartureStatus, string> = {
+  available:  'Available',
+  guaranteed: 'Guaranteed',
+  limited:    'Limited Spots',
+  sold_out:   'Sold Out',
+  closed:     'Closed',
+};
+
+export const DEPARTURE_STATUS_COLORS: Record<DepartureStatus, string> = {
+  available:  '#60A5FA',
+  guaranteed: '#10B981',
+  limited:    '#F59E0B',
+  sold_out:   '#EF4444',
+  closed:     '#6B7280',
+};
+
+// ─── Legacy types — kept for backward compat with existing admin pages ────────
+export type ExperienceType  = 'yoga_retreat' | 'student_trip' | 'upcoming_trip';
+export type DepartureType   = 'fixed_dates'  | 'flexible_window';
+export type PricingModel    = 'fixed'        | 'flexible';
+
+export interface ExperienceItineraryBlock {
+  day: number;
+  title: string;
+  description: string;
+}
+
+export interface ExperienceProduct {
+  id: string;
+  title: string;
+  slug: string;
+  type: ExperienceType;
+  description: string | null;
+  highlights: string[];
+  itinerary: ExperienceItineraryBlock[];
+  duration_days: number | null;
+  duration_nights: number | null;
+  departure_type: DepartureType;
+  fixed_departures: string[];
+  flexible_months: string[];
+  pricing_model: PricingModel;
+  price_per_person: number | null;
+  starting_price: number | null;
+  included: string[];
+  excluded: string[];
+  images: string[];
+  accommodation_level: string | null;
+  capacity: number | null;
+  min_group_size: number | null;
+  max_group_size: number | null;
+  status: 'draft' | 'published';
+  created_at: string;
+  updated_at: string;
+}
+
+export const EXPERIENCE_TYPE_LABELS: Record<ExperienceType, string> = {
+  yoga_retreat:  'Yoga Retreat',
+  upcoming_trip: 'Upcoming Trip',
+  student_trip:  'Student Trip',
+};
+
+export const EXPERIENCE_TYPE_COLORS: Record<ExperienceType, string> = {
+  yoga_retreat:  '#10B981',
+  upcoming_trip: '#60A5FA',
+  student_trip:  '#A78BFA',
+};
 
 // ─── Parse helpers (DB stores arrays as JSON strings) ────────────────────────
 
@@ -118,4 +736,8 @@ export function parseTourIncluded(tour: Tour): string[] {
 
 export function parseTourHighlights(tour: Tour): string[] {
   return parseJsonField<string[]>(tour.highlights, []);
+}
+
+export function parseTourNotIncluded(tour: Tour): string[] {
+  return parseJsonField<string[]>(tour.not_included, []);
 }

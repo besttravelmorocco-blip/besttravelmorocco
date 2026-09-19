@@ -103,13 +103,18 @@ export default function Login() {
                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,.5)' }}>Secure sign-in</span>
               </div>
 
-              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <form onSubmit={handleLogin} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Hidden trap inputs stop browsers from injecting saved-account UI */}
+                <input type="text" name="username_trap" style={{ display: 'none' }} aria-hidden="true" readOnly tabIndex={-1} />
+                <input type="password" name="password_trap" style={{ display: 'none' }} aria-hidden="true" readOnly tabIndex={-1} />
+
                 <div className="form-group">
                   <label className="form-label" style={{ color: 'rgba(255,255,255,.6)' }}>Email</label>
                   <div style={{ position: 'relative' }}>
                     <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,.3)', pointerEvents: 'none' }} />
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                      placeholder="hello@besttravelmorocco.com" disabled={loading}
+                      placeholder="Email address" disabled={loading}
+                      autoComplete="off" name="admin_email"
                       className="form-input" style={{ ...INPUT_STYLE, paddingLeft: 36 }} />
                   </div>
                 </div>
@@ -119,6 +124,7 @@ export default function Login() {
                   <div style={{ position: 'relative' }}>
                     <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
                       placeholder="••••••••" disabled={loading}
+                      autoComplete="new-password" name="admin_password"
                       className="form-input" style={{ ...INPUT_STYLE, paddingRight: 40 }} />
                     <button type="button" onClick={() => setShowPw(s => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.4)', padding: 2 }}>
                       {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -155,12 +161,13 @@ export default function Login() {
                   <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 13 }}>Reset link sent to <strong style={{ color: 'rgba(255,255,255,.7)' }}>{email}</strong></p>
                 </div>
               ) : (
-                <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <form onSubmit={handleReset} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 13, lineHeight: 1.6 }}>Enter your email and we'll send a password reset link.</p>
                   <div className="form-group">
                     <label className="form-label" style={{ color: 'rgba(255,255,255,.6)' }}>Email</label>
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                      placeholder="hello@besttravelmorocco.com"
+                      placeholder="Email address"
+                      autoComplete="off" name="reset_email"
                       className="form-input" style={INPUT_STYLE} />
                   </div>
                   {error && <div style={ERROR_BOX}>{error}</div>}
