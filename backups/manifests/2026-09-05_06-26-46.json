@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-09-05_06-26-46",
+  "status": "SUCCESS",
+  "total_rows": 412,
+  "exported_tables": 30,
+  "skipped_tables": [],
+  "failed_tables": [],
+  "warnings": [],
+  "git_commit": "2ac55d839ba694f61263c59cfbdf2a9bfc157d05",
+  "run_id": "33949825199",
+  "completed_at": "2026-09-05T06:26:52.205Z"
+}
