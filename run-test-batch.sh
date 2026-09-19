@@ -8,11 +8,11 @@ export $(grep -v '^#' .env.local | grep -v '^$' | xargs)
 
 echo ""
 echo "=== STEP 1: Schema Migration ==="
-node -e "
+NODE_TLS_REJECT_UNAUTHORIZED=0 node -e "
 const pg = require('pg');
 const client = new pg.Client({
   connectionString: process.env.POSTGRES_URL_NON_POOLING,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false, checkServerIdentity: () => undefined }
 });
 (async () => {
   await client.connect();

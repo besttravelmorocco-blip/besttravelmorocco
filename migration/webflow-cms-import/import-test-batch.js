@@ -234,7 +234,7 @@ function buildTourRecord(webflowSlug, cmsId, extra = {}) {
     status:              'draft',
     featured:            false,
     popular:             false,
-    sort_order:          null,
+    sort_order:          999,
     migration_source:    migrationSource(webflowSlug, t.url, {
       webflow_images:    t.all_images || [],
       route_summary:     t.route_summary || null
