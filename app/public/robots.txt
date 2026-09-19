@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Block admin areas
+Disallow: /api/
+
+Sitemap: https://www.besttravelmorocco.com/sitemap.xml

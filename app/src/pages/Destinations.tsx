@@ -60,7 +60,7 @@ const Destinations = () => {
         <title>Morocco Destinations | Marrakech, Sahara, Chefchaouen | Best of Morocco</title>
         <meta name="description" content="Explore Morocco's most captivating destinations. From the red city of Marrakech to the blue streets of Chefchaouen and the golden Sahara dunes." />
         <meta name="keywords" content="Morocco destinations, Marrakech travel, Sahara Desert, Chefchaouen, Fes, Casablanca, Essaouira" />
-        <link rel="canonical" href="https://gobestmorocco.com/destinations" />
+        <link rel="canonical" href="https://www.besttravelmorocco.com/destinations" />
       </Helmet>
 
       {/* Hero Header - Enhanced */}

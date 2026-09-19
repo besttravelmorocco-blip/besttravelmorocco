@@ -189,37 +189,38 @@ const Home = () => {
     <div className="min-h-screen">
       {/* SEO Meta Tags */}
       <Helmet>
-        <title>Best of Morocco | Authentic Morocco Tours & Travel Packages</title>
-        <meta name="description" content="Experience the magic of Morocco with Best of Morocco. Authentic desert tours, imperial cities & custom trips crafted by passionate local experts." />
+        <title>Morocco's Premier Tour Company – Best Travel Morocco</title>
+        <meta name="description" content="We craft bespoke Tours and Travel packages in Morocco that will take you off the beaten track. Founded in 2004, we've welcomed over 20,000 guests from around the world. Your Morocco Tour experts." />
         <meta name="keywords" content="Morocco tours, Sahara desert tours, Marrakech tours, Morocco travel, Morocco vacation, Morocco holiday packages, Fes tours, Chefchaouen, Atlas Mountains" />
         
         {/* Open Graph */}
-        <meta property="og:title" content="Best of Morocco | Authentic Morocco Tours & Travel Packages" />
-        <meta property="og:description" content="Experience the magic of Morocco with passionate local experts. Book your dream Moroccan adventure today!" />
+        <meta property="og:title" content="Morocco's Premier Tour Company – Best Travel Morocco" />
+        <meta property="og:description" content="We craft bespoke Tours and Travel packages in Morocco that will take you off the beaten track. Founded in 2004, we've welcomed over 20,000 guests from around the world." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://gobestmorocco.com" />
-        <meta property="og:image" content="https://gobestmorocco.com/images/hero-bg.jpg" />
-        <meta property="og:site_name" content="Best of Morocco" />
+        <meta property="og:url" content="https://www.besttravelmorocco.com" />
+        <meta property="og:image" content="https://www.besttravelmorocco.com/images/hero-bg.jpg" />
+        <meta property="og:site_name" content="Best Travel Morocco" />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Best of Morocco | Authentic Morocco Tours" />
-        <meta name="twitter:description" content="Experience the magic of Morocco with passionate local experts. Book your dream adventure today!" />
-        <meta name="twitter:image" content="https://gobestmorocco.com/images/hero-bg.jpg" />
+        <meta name="twitter:title" content="Morocco's Premier Tour Company – Best Travel Morocco" />
+        <meta name="twitter:description" content="We craft bespoke Tours and Travel packages in Morocco that will take you off the beaten track. Founded in 2004, we've welcomed over 20,000 guests from around the world." />
+        <meta name="twitter:image" content="https://www.besttravelmorocco.com/images/hero-bg.jpg" />
         
         {/* Canonical */}
-        <link rel="canonical" href="https://gobestmorocco.com" />
+        <link rel="canonical" href="https://www.besttravelmorocco.com" />
         
         {/* Structured Data */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "TravelAgency",
-            "name": "Best of Morocco",
-            "description": "Authentic Morocco tour operator offering desert tours, imperial city tours, and custom travel packages.",
-            "url": "https://gobestmorocco.com",
-            "logo": "https://gobestmorocco.com/images/logo-icon.png",
-            "image": "https://gobestmorocco.com/images/hero-bg.jpg",
+            "name": "Best Travel Morocco",
+            "description": "We craft bespoke Tours and Travel packages in Morocco that will take you off the beaten track. Founded in 2004, we've welcomed over 20,000 guests from around the world.",
+            "foundingDate": "2004",
+            "url": "https://www.besttravelmorocco.com",
+            "logo": "https://www.besttravelmorocco.com/images/logo-icon.png",
+            "image": "https://www.besttravelmorocco.com/images/hero-bg.jpg",
             "telephone": contactInfo.phone,
             "email": contactInfo.email,
             "address": {

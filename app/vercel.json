@@ -1,3 +1,25 @@
 {
+  "redirects": [
+    { "source": "/morocco-holiday-tours/tours-from-marrakech", "destination": "/destinations/marrakech", "permanent": true },
+    { "source": "/morocco-holiday-tours/special-holiday-tours/honeymoons-morocco", "destination": "/tours?style=honeymoon", "permanent": true },
+    { "source": "/morocco-holiday-tours/special-holiday-tours/yoga-retreats-desert-quietness", "destination": "/tours?style=yoga", "permanent": true },
+    { "source": "/morocco-holiday-tours/special-holiday-tours/family-holidays-morocco", "destination": "/tours?style=family", "permanent": true },
+    { "source": "/morocco-holiday-tours/tours-from-fes", "destination": "/destinations/fes", "permanent": true },
+    { "source": "/morocco-holiday-tours/tours-from-marrakech-to-fes", "destination": "/tours", "permanent": true },
+    { "source": "/morocco-holiday-tours/luxury-morocco-tours", "destination": "/tours?style=luxury", "permanent": true },
+    { "source": "/morocco-holiday-tours/sahara-desert-tours", "destination": "/tours?category=Desert Tours", "permanent": true },
+    { "source": "/morocco-holiday-tours", "destination": "/tours", "permanent": true },
+    { "source": "/morocco-holiday-tours/:path*", "destination": "/tours", "permanent": true },
+    { "source": "/day-trip-activities-excursions-from-marrakech/essaouira-day-trip", "destination": "/tours/essaouira-day-trip-marrakech", "permanent": true },
+    { "source": "/day-trip-activities-excursions-from-marrakech/ouzoud-waterfalls", "destination": "/tours/ouzoud-waterfalls-day-trip", "permanent": true },
+    { "source": "/day-trip-activities-excursions-from-marrakech/ourika-valley", "destination": "/tours/ourika-valley-day-trip", "permanent": true },
+    { "source": "/day-trip-activities-excursions-from-marrakech/atlas-mountains", "destination": "/tours/atlas-mountains-trek-4-days", "permanent": true },
+    { "source": "/day-trip-activities-excursions-from-marrakech", "destination": "/tours?category=Day Trips", "permanent": true },
+    { "source": "/day-trip-activities-excursions-from-marrakech/:path*", "destination": "/tours?category=Day Trips", "permanent": true },
+    { "source": "/about-us", "destination": "/about", "permanent": true },
+    { "source": "/contact-us", "destination": "/contact", "permanent": true },
+    { "source": "/tours-morocco", "destination": "/tours", "permanent": true },
+    { "source": "/seo-plan", "destination": "/", "permanent": true }
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

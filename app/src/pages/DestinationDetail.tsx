@@ -199,7 +199,7 @@ const DestinationDetail = () => {
     "name": destination.name,
     "description": destination.description,
     "image": destination.image,
-    "url": `https://gobestmorocco.com/destinations/${destination.slug}`,
+    "url": `https://www.besttravelmorocco.com/destinations/${destination.slug}`,
     "touristType": "Leisure, Cultural, Adventure",
     "geo": {
       "@type": "GeoCoordinates",
@@ -219,7 +219,7 @@ const DestinationDetail = () => {
         <title>{destination.name} Travel Guide | Things to Do, Tours & Tips | Best of Morocco</title>
         <meta name="description" content={`Discover ${destination.name}, ${destination.tagline}. Explore top attractions, best tours, travel tips, and things to do in this magical Moroccan destination.`} />
         <meta name="keywords" content={`${destination.name} Morocco, ${destination.name} travel guide, ${destination.name} tours, things to do in ${destination.name}`} />
-        <link rel="canonical" href={`https://gobestmorocco.com/destinations/${destination.slug}`} />
+        <link rel="canonical" href={`https://www.besttravelmorocco.com/destinations/${destination.slug}`} />
         <script type="application/ld+json">{JSON.stringify(destinationSchema)}</script>
       </Helmet>
 

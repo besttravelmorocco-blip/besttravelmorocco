@@ -444,7 +444,7 @@ export const features = [
 export const contactInfo = {
   phone: '+212677365421',
   whatsapp: '+212677365421',
-  email: 'hello@gobestmorocco.com',
+  email: 'hello@besttravelmorocco.com',
   address: 'Casablanca, Morocco',
   hours: 'Monday - Saturday: 9:00 AM - 6:00 PM',
   social: {

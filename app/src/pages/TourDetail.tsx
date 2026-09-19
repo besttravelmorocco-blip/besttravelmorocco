@@ -179,7 +179,7 @@ const TourDetail = () => {
     "name": tour.title,
     "description": tour.description,
     "image": tour.image,
-    "url": `https://gobestmorocco.com/tours/${tour.slug}`,
+    "url": `https://www.besttravelmorocco.com/tours/${tour.slug}`,
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": tour.rating,
@@ -206,13 +206,13 @@ const TourDetail = () => {
         <title>{tour.seoTitle || `${tour.title} | Best of Morocco`}</title>
         <meta name="description" content={tour.seoDescription || tour.shortDescription} />
         <meta name="keywords" content={tour.keywords?.join(', ') || 'Morocco tours, ' + tour.category} />
-        <link rel="canonical" href={`https://gobestmorocco.com/tours/${tour.slug}`} />
+        <link rel="canonical" href={`https://www.besttravelmorocco.com/tours/${tour.slug}`} />
         
         {/* Open Graph */}
         <meta property="og:title" content={tour.title} />
         <meta property="og:description" content={tour.shortDescription} />
         <meta property="og:type" content="product" />
-        <meta property="og:url" content={`https://gobestmorocco.com/tours/${tour.slug}`} />
+        <meta property="og:url" content={`https://www.besttravelmorocco.com/tours/${tour.slug}`} />
         <meta property="og:image" content={tour.image} />
         
         {/* Structured Data */}

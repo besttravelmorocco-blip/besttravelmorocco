@@ -255,7 +255,7 @@ const Tours = () => {
         <title>All Morocco Tours | Desert, Imperial Cities, Day Trips | Best of Morocco</title>
         <meta name="description" content="Browse 30+ Morocco tours: Sahara desert tours, imperial cities, day trips from Marrakech/Fes, adventure activities. Send an enquiry for your Morocco adventure!" />
         <meta name="keywords" content="Morocco tours, Sahara desert tours, Marrakech day trips, Fes tours, imperial cities Morocco, Morocco travel packages" />
-        <link rel="canonical" href="https://gobestmorocco.com/tours" />
+        <link rel="canonical" href="https://www.besttravelmorocco.com/tours" />
       </Helmet>
 
       {/* Hero Header - Enhanced */}
