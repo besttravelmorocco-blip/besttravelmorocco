@@ -16,6 +16,7 @@ const ROLE_LABELS: Record<AdminRole, string> = {
   super_admin:        'Super Admin',
   website_manager:    'Website Manager',
   operations_manager: 'Operations Manager',
+  finance_manager:    'Finance Manager',
   sales_agent:        'Sales Agent',
   content_editor:     'Content Editor',
 };
@@ -24,6 +25,7 @@ const ROLE_DESC: Record<AdminRole, string> = {
   super_admin:        'Full access to all sections including system settings and team management.',
   website_manager:    'Manages website content, tours, blog, destinations, experiences, and appearance.',
   operations_manager: 'Manages bookings, staff, vehicles, accommodations, suppliers, pricing, and reports.',
+  finance_manager:    'Manages payments, financial reports, invoices, and cost tracking.',
   sales_agent:        'Handles inquiries, bookings, custom tour requests, and customer records.',
   content_editor:     'Creates and edits tours, blog posts, testimonials, FAQs, and media files.',
 };
@@ -32,6 +34,7 @@ const ROLE_COLOR: Record<AdminRole, string> = {
   super_admin:        '#C9A96E',
   website_manager:    '#60A5FA',
   operations_manager: '#F97316',
+  finance_manager:    '#34D399',
   sales_agent:        '#10B981',
   content_editor:     '#A78BFA',
 };

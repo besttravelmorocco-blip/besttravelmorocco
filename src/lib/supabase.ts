@@ -696,25 +696,29 @@ export const EXPERIENCE_TYPE_COLORS: Record<ExperienceType, string> = {
   student_trip:  '#A78BFA',
 };
 
-// ─── Parse helpers (DB stores arrays as JSON strings) ────────────────────────
+// ─── Parse helpers (handles both JSONB strings and already-parsed objects) ───
 
-export function parseJsonField<T>(value: string | null | undefined, fallback: T): T {
-  if (!value) return fallback;
-  try { return JSON.parse(value) as T; } catch { return fallback; }
+export function parseJsonField<T>(value: unknown, fallback: T): T {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === 'string') {
+    if (!value) return fallback;
+    try { return JSON.parse(value) as T; } catch { return fallback; }
+  }
+  return value as T;
 }
 
 export function parseTourItinerary(tour: Tour): ItineraryDay[] {
-  return parseJsonField<ItineraryDay[]>(tour.itinerary, []);
+  return parseJsonField<ItineraryDay[]>(tour.itinerary as unknown, []);
 }
 
 export function parseTourIncluded(tour: Tour): string[] {
-  return parseJsonField<string[]>(tour.included, []);
+  return parseJsonField<string[]>(tour.included as unknown, []);
 }
 
 export function parseTourHighlights(tour: Tour): string[] {
-  return parseJsonField<string[]>(tour.highlights, []);
+  return parseJsonField<string[]>(tour.highlights as unknown, []);
 }
 
 export function parseTourNotIncluded(tour: Tour): string[] {
-  return parseJsonField<string[]>(tour.not_included, []);
+  return parseJsonField<string[]>(tour.not_included as unknown, []);
 }

@@ -1,7 +1,8 @@
 import { Sun, Moon, Bell, Search, LogOut, User } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import GlobalSearch from './GlobalSearch';
 
 interface HeaderProps {
   title?: string;
@@ -12,6 +13,18 @@ export default function Header({ title, breadcrumbs }: HeaderProps) {
   const { theme, toggle } = useTheme();
   const { user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(o => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <header className="admin-header">
@@ -40,9 +53,19 @@ export default function Header({ title, breadcrumbs }: HeaderProps) {
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         {/* Search */}
-        <button className="btn-icon" title="Global search">
+        <button
+          className="btn-icon"
+          title="Global search (⌘K)"
+          onClick={() => setSearchOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+        >
           <Search size={15} />
+          <span style={{ fontSize: 11, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 3 }}>
+            <kbd style={{ padding: '1px 4px', borderRadius: 3, border: '1px solid var(--border)', background: 'var(--bg)', fontSize: 10, fontFamily: 'Jost, sans-serif', lineHeight: 1.6 }}>⌘K</kbd>
+          </span>
         </button>
+
+        <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
 
         {/* Notifications */}
         <button className="btn-icon" title="Notifications" style={{ position: 'relative' }}>

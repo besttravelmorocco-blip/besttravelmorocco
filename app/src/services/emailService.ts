@@ -300,7 +300,7 @@ const newsletterWelcomeTemplate = (_email: string): string => `
         <li>New tour announcements</li>
         <li>Travel inspiration and stories</li>
       </ul>
-      <a href="https://gobestmorocco.com/tours" class="button">Explore Our Tours</a>
+      <a href="https://www.besttravelmorocco.com/tours" class="button">Explore Our Tours</a>
     </div>
     <div class="footer">
       <p>Best of Morocco - Your Gateway to Authentic Moroccan Adventures</p>

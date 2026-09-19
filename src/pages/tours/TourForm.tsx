@@ -117,10 +117,10 @@ export default function TourForm() {
       image: form.image,
       status,
       featured: form.featured,
-      itinerary:    JSON.stringify(form.itinerary),
-      included:     JSON.stringify(form.included),
+      itinerary:    form.itinerary,
+      included:     form.included,
       not_included: JSON.stringify(form.not_included),
-      highlights:   JSON.stringify(form.highlights),
+      highlights:   form.highlights,
       seo_title:    form.seo_title,
       seo_description: form.seo_description,
       updated_at:   new Date().toISOString(),
@@ -139,7 +139,14 @@ export default function TourForm() {
         set('status', status);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Save failed';
+      let msg = 'Save failed';
+      if (err instanceof Error) {
+        msg = err.message;
+      } else if (err && typeof err === 'object') {
+        const pgErr = err as { message?: string; code?: string; details?: string };
+        msg = pgErr.message || msg;
+        console.error('[TourForm] save error:', pgErr.code, pgErr.message, pgErr.details);
+      }
       toast.error(msg);
     } finally {
       setSaving(false);
