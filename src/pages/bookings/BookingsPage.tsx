@@ -59,12 +59,16 @@ export default function BookingsPage() {
   const today = new Date().toISOString().slice(0, 10);
   const todayCount = bookings.filter(b => b.start_date === today).length;
   const activeCount = bookings.filter(b => b.status === 'active' || b.status === 'confirmed').length;
-  const revenue = bookings
-    .filter(b => b.status !== 'cancelled')
-    .reduce((sum, b) => sum + (b.total_price ?? 0), 0);
-  const outstanding = bookings
-    .filter(b => !b.balance_paid && (b.status === 'confirmed' || b.status === 'active'))
-    .reduce((sum, b) => sum + ((b.total_price ?? 0) - (b.deposit_amount ?? 0)), 0);
+  const revenue = Math.round(
+    bookings
+      .filter(b => b.status !== 'cancelled')
+      .reduce((sum, b) => sum + (b.total_price ?? 0), 0) / 100
+  );
+  const outstanding = Math.round(
+    bookings
+      .filter(b => !b.balance_paid && (b.status === 'confirmed' || b.status === 'active'))
+      .reduce((sum, b) => sum + (b.total_price ?? 0), 0) / 100
+  );
 
   const fmtDate = (d: string | null) =>
     d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' }) : '—';
@@ -72,7 +76,7 @@ export default function BookingsPage() {
   const fmtCcy = (amount: number | null, ccy = 'EUR') => {
     if (!amount) return '—';
     const sym = ccy === 'EUR' ? '€' : ccy === 'USD' ? '$' : ccy === 'GBP' ? '£' : ccy + ' ';
-    return `${sym}${amount.toLocaleString()}`;
+    return `${sym}${(amount / 100).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
   };
 
   if (loading) return <div className="page-loading"><div className="spinner" /><p>Loading bookings…</p></div>;
