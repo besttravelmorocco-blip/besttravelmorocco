@@ -67,7 +67,7 @@ export default function ReportsPage() {
     statusCounts[b.status] = (statusCounts[b.status] ?? 0) + 1;
   }
 
-  const fmtCcy = (n: number) => `€${n.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`;
+  const fmtCcy = (n: number) => `€${(n / 100).toLocaleString('en-GB', { maximumFractionDigits: 0 })}`;
   const fmtMonth = (m: string) => new Date(m + '-01T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
 
   if (loading) return <div className="page-loading"><div className="spinner" /><p>Loading reports…</p></div>;
