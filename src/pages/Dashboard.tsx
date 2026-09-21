@@ -65,12 +65,16 @@ export default function Dashboard() {
         const bookingList = (bookings ?? []) as OpBooking[];
 
         const active = bookingList.filter(b => b.status === 'active' || b.status === 'confirmed');
-        const revenue = bookingList
-          .filter(b => b.status !== 'cancelled')
-          .reduce((sum, b) => sum + (b.total_price ?? 0), 0);
-        const outstanding = bookingList
-          .filter(b => !b.balance_paid && (b.status === 'confirmed' || b.status === 'active'))
-          .reduce((sum, b) => sum + ((b.total_price ?? 0) - (b.deposit_amount ?? 0)), 0);
+        const revenue = Math.round(
+          bookingList
+            .filter(b => b.status !== 'cancelled')
+            .reduce((sum, b) => sum + (b.total_price ?? 0), 0) / 100
+        );
+        const outstanding = Math.round(
+          bookingList
+            .filter(b => !b.balance_paid && (b.status === 'confirmed' || b.status === 'active'))
+            .reduce((sum, b) => sum + (b.total_price ?? 0), 0) / 100
+        );
 
         setStats({
           tours: tourList.length,
@@ -117,7 +121,7 @@ export default function Dashboard() {
   const s = stats!;
 
   const fmtDate = (d: string | null) =>
-    d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+    d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
 
   return (
     <div className="page">
@@ -144,7 +148,7 @@ export default function Dashboard() {
           )}
           {s.newInquiries > 0 && (
             <Link to="/inquiries" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(244,114,182,0.12)', border: '1px solid rgba(244,114,182,0.3)', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', fontSize: 13, color: '#F472B6', fontWeight: 600 }}>
-              <Inbox size={15} />{s.newInquiries} new inquiry{s.newInquiries > 1 ? 'ies' : ''}
+              <Inbox size={15} />{s.newInquiries} new {s.newInquiries === 1 ? 'inquiry' : 'inquiries'}
             </Link>
           )}
         </div>
