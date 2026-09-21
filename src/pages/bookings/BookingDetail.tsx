@@ -250,7 +250,7 @@ export default function BookingDetail() {
   const fmtCcy = (amount: number | null, ccy = 'EUR') => {
     if (!amount) return '—';
     const sym = ccy === 'EUR' ? '€' : ccy === 'USD' ? '$' : ccy === 'GBP' ? '£' : ccy + ' ';
-    return `${sym}${amount.toLocaleString()}`;
+    return `${sym}${(amount / 100).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
   };
 
   function fi(key: keyof OpBooking) { return form[key] as string | undefined; }
