@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import type { Departure, DepartureStatus, Product } from '@/lib/supabase';
+import type { Departure, DepartureStatus, Product, OpBooking, StaffMember } from '@/lib/supabase';
+import { BOOKING_STATUS_LABELS, BOOKING_STATUS_COLORS } from '@/lib/supabase';
 import { DEPARTURE_STATUS_LABELS, DEPARTURE_STATUS_COLORS } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
   Plus, Calendar, Users, Edit2, Trash2, X, Save, Loader2,
-  ChevronDown, ExternalLink,
+  ChevronDown, ExternalLink, MapPin, AlertTriangle, Car, UserCheck, CalendarDays, List,
 } from 'lucide-react';
 
 const STATUSES = ['available', 'guaranteed', 'limited', 'sold_out', 'closed'] as const;
@@ -41,7 +42,7 @@ function emptyForm(productId = ''): FormState {
   };
 }
 
-export default function DeparturesPage() {
+function FixedDeparturesTab() {
   const [searchParams] = useSearchParams();
   const productFilter  = searchParams.get('product') ?? '';
 
@@ -174,14 +175,11 @@ export default function DeparturesPage() {
   const past     = filtered.filter(d => d.departure_date < now);
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Departures</h1>
-          <p className="page-subtitle">
-            {departures.length} total · {upcoming.length} upcoming
-          </p>
-        </div>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
+        <p className="text-3" style={{ fontSize: 13 }}>
+          {departures.length} total · {upcoming.length} upcoming
+        </p>
         <button onClick={openNew} className="btn btn-primary">
           <Plus size={14} /> New Departure
         </button>
@@ -477,6 +475,206 @@ function DepartureRow({
           <Trash2 size={13} />
         </button>
       </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Page wrapper with tabs
+// ══════════════════════════════════════════════════════════════════════════════
+
+type DepTab = 'upcoming' | 'fixed';
+
+export default function DeparturesPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab: DepTab = searchParams.get('tab') === 'fixed' || searchParams.get('product') ? 'fixed' : 'upcoming';
+
+  function setTab(t: DepTab) {
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', t);
+    if (t === 'upcoming') next.delete('product');
+    setSearchParams(next, { replace: true });
+  }
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Departures</h1>
+          <p className="page-subtitle">Who is travelling when, and the fixed-date departures on sale</p>
+        </div>
+      </div>
+
+      <div className="tabs" style={{ marginBottom: 20 }}>
+        <button onClick={() => setTab('upcoming')} className={`tab ${tab === 'upcoming' ? 'tab-active' : ''}`}>
+          <CalendarDays size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: -2 }} />Upcoming Bookings
+        </button>
+        <button onClick={() => setTab('fixed')} className={`tab ${tab === 'fixed' ? 'tab-active' : ''}`}>
+          <List size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: -2 }} />Fixed Departures
+        </button>
+      </div>
+
+      {tab === 'upcoming' ? <UpcomingBookingsTab /> : <FixedDeparturesTab />}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Upcoming bookings — operational view
+// ══════════════════════════════════════════════════════════════════════════════
+
+const ACTIVE_STATUSES = ['confirmed', 'deposit_paid', 'active'] as const;
+const RANGES = [
+  { days: 7,  label: 'Next 7 days' },
+  { days: 14, label: 'Next 14 days' },
+  { days: 30, label: 'Next 30 days' },
+  { days: 90, label: 'Next 90 days' },
+];
+
+function isoDay(offsetDays = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function UpcomingBookingsTab() {
+  const [bookings, setBookings] = useState<OpBooking[]>([]);
+  const [staff, setStaff]       = useState<StaffMember[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [range, setRange]       = useState(30);
+  const [onlyIssues, setOnlyIssues] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const [bk, st] = await Promise.all([
+      supabase
+        .from('op_bookings')
+        .select('*')
+        .in('status', ACTIVE_STATUSES as unknown as string[])
+        .gte('start_date', isoDay(0))
+        .lte('start_date', isoDay(range))
+        .order('start_date', { ascending: true })
+        .order('pickup_time', { ascending: true, nullsFirst: false }),
+      supabase.from('staff').select('*').order('name'),
+    ]);
+    if (bk.error) toast.error(bk.error.message);
+    if (st.error) toast.error('Could not load staff');
+    setBookings((bk.data as OpBooking[]) ?? []);
+    setStaff((st.data as StaffMember[]) ?? []);
+    setLoading(false);
+  }, [range]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const staffName = (id: string | null) => (id ? staff.find(s => s.id === id)?.name ?? '—' : null);
+
+  const issuesOf = (b: OpBooking) => {
+    const out: string[] = [];
+    if (!b.driver_id) out.push('No driver');
+    if (!b.guide_fes_id && !b.guide_marrakech_id && !b.guide_volubilis_id) out.push('No guide');
+    if (!b.pickup_location) out.push('No pickup');
+    if (b.status === 'confirmed' && !b.deposit_paid) out.push('Deposit unpaid');
+    return out;
+  };
+
+  const visible = onlyIssues ? bookings.filter(b => issuesOf(b).length > 0) : bookings;
+
+  const groups = visible.reduce<Record<string, OpBooking[]>>((acc, b) => {
+    const k = b.start_date ?? 'unscheduled';
+    (acc[k] ||= []).push(b);
+    return acc;
+  }, {});
+
+  const totalPax    = bookings.reduce((n, b) => n + (b.num_adults ?? 0) + (b.num_children ?? 0), 0);
+  const withIssues  = bookings.filter(b => issuesOf(b).length > 0).length;
+  const today       = isoDay(0);
+  const tomorrow    = isoDay(1);
+
+  const dayLabel = (d: string) => {
+    const base = new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    return d === today ? `Today · ${base}` : d === tomorrow ? `Tomorrow · ${base}` : base;
+  };
+
+  return (
+    <div>
+      {/* Summary + filters */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ position: 'relative' }}>
+          <select className="form-input" value={range} onChange={e => setRange(+e.target.value)} style={{ paddingRight: 28, minWidth: 160 }}>
+            {RANGES.map(r => <option key={r.days} value={r.days}>{r.label}</option>)}
+          </select>
+          <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-3)' }} />
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer' }}>
+          <input type="checkbox" checked={onlyIssues} onChange={e => setOnlyIssues(e.target.checked)} />
+          Only show bookings needing attention
+        </label>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, fontSize: 12.5, color: 'var(--text-3)' }}>
+          <span><strong style={{ color: 'var(--text-1)' }}>{bookings.length}</strong> bookings</span>
+          <span><strong style={{ color: 'var(--text-1)' }}>{totalPax}</strong> travellers</span>
+          <span style={{ color: withIssues ? 'var(--status-warning)' : undefined }}>
+            <strong>{withIssues}</strong> need attention
+          </span>
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px 0' }}>
+          <div className="spinner" style={{ margin: '0 auto 12px' }} />
+          <p className="text-3">Loading upcoming bookings…</p>
+        </div>
+      ) : visible.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '48px 0' }}>
+          <p className="text-3">{onlyIssues ? 'Nothing needs attention in this period.' : 'No confirmed bookings starting in this period.'}</p>
+        </div>
+      ) : (
+        Object.entries(groups).map(([day, list]) => (
+          <section key={day} style={{ marginBottom: 24 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: day === today ? 'var(--sand)' : 'var(--text-3)', marginBottom: 10 }}>
+              {dayLabel(day)} · {list.length} booking{list.length > 1 ? 's' : ''}
+            </h3>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {list.map(b => {
+                const issues = issuesOf(b);
+                const pax = (b.num_adults ?? 0) + (b.num_children ?? 0);
+                const guides = [staffName(b.guide_fes_id), staffName(b.guide_marrakech_id), staffName(b.guide_volubilis_id)].filter(Boolean);
+                return (
+                  <Link key={b.id} to={`/bookings/${b.id}`} className="card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '12px 16px', flexWrap: 'wrap', textDecoration: 'none', borderLeft: `3px solid ${issues.length ? 'var(--status-warning)' : 'var(--status-success)'}` }}>
+                    <div style={{ flexShrink: 0, minWidth: 64, fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>
+                      {b.pickup_time ? b.pickup_time.slice(0, 5) : '--:--'}
+                    </div>
+                    <div style={{ flex: '1 1 240px', minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--sand)' }}>{b.reference}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{b.client_name}</span>
+                        <span className={`badge ${BOOKING_STATUS_COLORS[b.status]}`}>{BOOKING_STATUS_LABELS[b.status]}</span>
+                      </div>
+                      <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {b.tour_name}{b.end_date && b.end_date !== b.start_date ? ` · until ${new Date(b.end_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : ''}
+                      </div>
+                      <div style={{ display: 'flex', gap: 14, marginTop: 5, fontSize: 11.5, color: 'var(--text-3)', flexWrap: 'wrap' }}>
+                        <span><Users size={11} style={{ display: 'inline', marginRight: 3 }} />{pax} pax</span>
+                        {b.pickup_location && <span><MapPin size={11} style={{ display: 'inline', marginRight: 3 }} />{b.pickup_location}</span>}
+                        {staffName(b.driver_id) && <span><Car size={11} style={{ display: 'inline', marginRight: 3 }} />{staffName(b.driver_id)}</span>}
+                        {guides.length > 0 && <span><UserCheck size={11} style={{ display: 'inline', marginRight: 3 }} />{guides.join(', ')}</span>}
+                      </div>
+                    </div>
+                    {issues.length > 0 && (
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flexShrink: 0 }}>
+                        {issues.map(i => (
+                          <span key={i} className="badge badge-yellow" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <AlertTriangle size={10} /> {i}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        ))
+      )}
     </div>
   );
 }
