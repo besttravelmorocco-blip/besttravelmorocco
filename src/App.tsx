@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from 'react';
+import { Component, Suspense, lazy, type ReactNode } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,39 +8,40 @@ import RoleGuard from '@/components/RoleGuard';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
-import ToursPage from '@/pages/tours/ToursPage';
-import TourForm from '@/pages/tours/TourForm';
-import DestinationsPage from '@/pages/destinations/DestinationsPage';
-import BlogPage from '@/pages/blog/BlogPage';
-import TestimonialsPage from '@/pages/testimonials/TestimonialsPage';
-import FAQsPage from '@/pages/faqs/FAQsPage';
-import InquiriesPage from '@/pages/inquiries/InquiriesPage';
-import MediaPage from '@/pages/media/MediaPage';
-import SettingsPage from '@/pages/settings/SettingsPage';
-import Setup from '@/pages/Setup';
-import BookingsPage from '@/pages/bookings/BookingsPage';
-import BookingDetail from '@/pages/bookings/BookingDetail';
-import StaffPage from '@/pages/staff/StaffPage';
-import HomepageBuilderPage from '@/pages/website/HomepageBuilderPage';
-import NavigationEditorPage from '@/pages/website/NavigationEditorPage';
-import PopularToursPage from '@/pages/website/PopularToursPage';
-import NavDropdownPage from '@/pages/website/NavDropdownPage';
-import CustomersPage from '@/pages/customers/CustomersPage';
-import VehiclesPage from '@/pages/operations/VehiclesPage';
-import AccommodationsPage from '@/pages/accommodations/AccommodationsPage';
-import SuppliersPage from '@/pages/suppliers/SuppliersPage';
-import PricingEnginePage from '@/pages/pricing/PricingEnginePage';
-import CouponsPage from '@/pages/coupons/CouponsPage';
-import CustomToursPage from '@/pages/leads/CustomToursPage';
-import ReportsPage from '@/pages/reports/ReportsPage';
-import EmailTemplatesPage from '@/pages/email/EmailTemplatesPage';
-import ExperiencesManagerPage from '@/pages/experiences/ExperiencesManagerPage';
-import TeamRolesPage from '@/pages/team/TeamRolesPage';
-import ProductsPage from '@/pages/products/ProductsPage';
-import ProductForm from '@/pages/products/ProductForm';
-import DeparturesPage from '@/pages/departures/DeparturesPage';
-import SeoDashboardPage from '@/pages/seo/SeoDashboardPage';
-import SeoSettingsPage from '@/pages/seo/SeoSettingsPage';
+const ToursPage = lazy(() => import('@/pages/tours/ToursPage'));
+const TourForm = lazy(() => import('@/pages/tours/TourForm'));
+const DestinationsPage = lazy(() => import('@/pages/destinations/DestinationsPage'));
+const BlogPage = lazy(() => import('@/pages/blog/BlogPage'));
+const TestimonialsPage = lazy(() => import('@/pages/testimonials/TestimonialsPage'));
+const FAQsPage = lazy(() => import('@/pages/faqs/FAQsPage'));
+const InquiriesPage = lazy(() => import('@/pages/inquiries/InquiriesPage'));
+const MediaPage = lazy(() => import('@/pages/media/MediaPage'));
+const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
+const Setup = lazy(() => import('@/pages/Setup'));
+const BookingsPage = lazy(() => import('@/pages/bookings/BookingsPage'));
+const BookingDetail = lazy(() => import('@/pages/bookings/BookingDetail'));
+const StaffPage = lazy(() => import('@/pages/staff/StaffPage'));
+const HomepageBuilderPage = lazy(() => import('@/pages/website/HomepageBuilderPage'));
+const NavigationEditorPage = lazy(() => import('@/pages/website/NavigationEditorPage'));
+const PopularToursPage = lazy(() => import('@/pages/website/PopularToursPage'));
+const NavDropdownPage = lazy(() => import('@/pages/website/NavDropdownPage'));
+const CustomersPage = lazy(() => import('@/pages/customers/CustomersPage'));
+const VehiclesPage = lazy(() => import('@/pages/operations/VehiclesPage'));
+const AccommodationsPage = lazy(() => import('@/pages/accommodations/AccommodationsPage'));
+const SuppliersPage = lazy(() => import('@/pages/suppliers/SuppliersPage'));
+const PricingEnginePage = lazy(() => import('@/pages/pricing/PricingEnginePage'));
+const CouponsPage = lazy(() => import('@/pages/coupons/CouponsPage'));
+const CustomToursPage = lazy(() => import('@/pages/leads/CustomToursPage'));
+const ReportsPage = lazy(() => import('@/pages/reports/ReportsPage'));
+const EmailTemplatesPage = lazy(() => import('@/pages/email/EmailTemplatesPage'));
+const ExperiencesManagerPage = lazy(() => import('@/pages/experiences/ExperiencesManagerPage'));
+const TeamRolesPage = lazy(() => import('@/pages/team/TeamRolesPage'));
+const ProductsPage = lazy(() => import('@/pages/products/ProductsPage'));
+const ProductForm = lazy(() => import('@/pages/products/ProductForm'));
+const DeparturesPage = lazy(() => import('@/pages/departures/DeparturesPage'));
+const SeoDashboardPage = lazy(() => import('@/pages/seo/SeoDashboardPage'));
+const SeoSettingsPage = lazy(() => import('@/pages/seo/SeoSettingsPage'));
+const ReviewPage = lazy(() => import('@/pages/review/ReviewPage'));
 
 // ── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -78,10 +79,19 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return <RoleProvider user={user}>{children}</RoleProvider>;
 }
 
+function PageFallback() {
+  return (
+    <div style={{ padding: 60, textAlign: 'center' }}>
+      <div className="spinner" style={{ margin: '0 auto' }} />
+    </div>
+  );
+}
+
 export default function App() {
   useTheme();
   return (
     <ErrorBoundary>
+      <Suspense fallback={<PageFallback />}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/setup" element={<Setup />} />
@@ -101,6 +111,7 @@ export default function App() {
           <Route path="media" element={<MediaPage />} />
           <Route path="bookings" element={<BookingsPage />} />
           <Route path="bookings/:id" element={<BookingDetail />} />
+          <Route path="review" element={<ReviewPage />} />
           <Route path="staff" element={<StaffPage />} />
           <Route path="homepage-builder" element={<HomepageBuilderPage />} />
           <Route path="popular-tours" element={<PopularToursPage />} />
@@ -130,6 +141,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
+      </Suspense>
       <Toaster position="bottom-right" expand={false} richColors toastOptions={{ style: { fontFamily: 'Jost, sans-serif', fontSize: 13 } }} />
     </ErrorBoundary>
   );
