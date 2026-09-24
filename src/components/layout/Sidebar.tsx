@@ -6,7 +6,7 @@ import {
   ExternalLink, Wrench, CalendarDays, Navigation, Car,
   Building2, ShoppingBag, TrendingUp, Tag, Compass, BarChart3,
   Shield, PackageOpen, Map, Leaf, GraduationCap, Zap, Wallet,
-  Search, Sliders,
+  Search, Sliders, ClipboardCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { useRole, type AdminRole } from '@/context/RoleContext';
@@ -52,6 +52,7 @@ const SALES_ITEMS: NavDef[] = [
 ];
 
 const BOOKING_ITEMS: NavDef[] = [
+  { label: 'Review Queue', icon: ClipboardCheck, to: '/review' },
   { label: 'Reservations', icon: CalendarDays, to: '/bookings' },
 ];
 
